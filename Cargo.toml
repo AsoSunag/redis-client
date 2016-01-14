@@ -1,4 +1,4 @@
 [package]
-name = "redis"
+name = "redis-client"
 version = "0.1.0"
 authors = ["gautier.tanguy"]
