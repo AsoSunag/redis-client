@@ -123,6 +123,13 @@ impl RedisClient {
         Ok(res.convert::<i64>())
     }
 
+    pub fn expireat(&mut self, key: &str, timestamp: i64) -> Result<i64, RedisError> {
+        let cmd = "EXPIREAT ".to_string() + &key + &" ".to_string() + &timestamp.to_string() + &"\r\n".to_string();
+
+        let res = try!(self.exec_command(cmd.as_bytes()));      
+        Ok(res.convert::<i64>())
+    }
+
     pub fn get<T: From<RedisResult>>(&mut self, key: &str) -> Result<T, RedisError> {
         let cmd = "GET ".to_string() + &key + &"\r\n".to_string();
 
@@ -130,13 +137,20 @@ impl RedisClient {
         Ok(res.convert::<T>())
     }
 
+    pub fn getrange<T: From<RedisResult>>(&mut self, key: &str, start_range: i64, end_range: i64) -> Result<T, RedisError> {
+        let cmd = "GETRANGE ".to_string() + &key  + &" ".to_string() + &start_range.to_string() + &" ".to_string() + &end_range.to_string() +  &"\r\n".to_string();
+
+        let res = try!(self.exec_command(cmd.as_bytes()));      
+        Ok(res.convert::<T>())
+    }
+
+
     pub fn set(&mut self, key: &str, value: &[u8]) -> Result<String, RedisError> {
         let cmd = "SET ".to_string() + &key + &" ".to_string();
 
         let mut cmd_bytes: Vec<u8> = cmd.into_bytes();
 
         cmd_bytes.extend(value.iter().cloned());
-        cmd_bytes.extend([13,10].iter().cloned()); //ADD CRLF at the end of the command
 
         let res = try!(self.exec_command(&*cmd_bytes));      
         Ok(res.convert::<String>())
@@ -158,6 +172,41 @@ impl RedisClient {
 
     pub fn setex(&mut self, key: &str, value: &[u8], expiry: i64) -> Result<String, RedisError> {
         let arg = "EX ".to_string() + &expiry.to_string()[..];
+        self.set_with_args(key, value, &arg[..])
+    }
+
+    pub fn psetex(&mut self, key: &str, value: &[u8], expiry: i64) -> Result<String, RedisError> {
+        let arg = "PX ".to_string() + &expiry.to_string()[..];
+        self.set_with_args(key, value, &arg[..])
+    }
+
+    pub fn setnx(&mut self, key: &str, value: &[u8]) -> Result<String, RedisError> {
+        let arg = "NX".to_string();
+        self.set_with_args(key, value, &arg[..])
+    }
+
+    pub fn setxx(&mut self, key: &str, value: &[u8]) -> Result<String, RedisError> {
+        let arg = "XX".to_string();
+        self.set_with_args(key, value, &arg[..])
+    }
+
+    pub fn setexnx(&mut self, key: &str, value: &[u8], expiry: i64) -> Result<String, RedisError> {
+        let arg = "EX ".to_string() + &expiry.to_string()[..] + &" NX".to_string();
+        self.set_with_args(key, value, &arg[..])
+    }
+
+    pub fn setexxx(&mut self, key: &str, value: &[u8], expiry: i64) -> Result<String, RedisError> {
+        let arg = "EX ".to_string() + &expiry.to_string()[..] + &" XX".to_string();
+        self.set_with_args(key, value, &arg[..])
+    }
+
+    pub fn psetexnx(&mut self, key: &str, value: &[u8], expiry: i64) -> Result<String, RedisError> {
+        let arg = "PX ".to_string() + &expiry.to_string()[..] + &" NX".to_string();
+        self.set_with_args(key, value, &arg[..])
+    }
+
+    pub fn psetexxx(&mut self, key: &str, value: &[u8], expiry: i64) -> Result<String, RedisError> {
+        let arg = "PX ".to_string() + &expiry.to_string()[..] + &" XX".to_string();
         self.set_with_args(key, value, &arg[..])
     }
 
