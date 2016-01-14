@@ -190,28 +190,111 @@ impl RedisClient {
         self.set_with_args(key, value, &arg[..])
     }
 
-    pub fn setexnx(&mut self, key: &str, value: &[u8], expiry: i64) -> Result<String, RedisError> {
+    pub fn setex_nx(&mut self, key: &str, value: &[u8], expiry: i64) -> Result<String, RedisError> {
         let arg = "EX ".to_string() + &expiry.to_string()[..] + &" NX".to_string();
         self.set_with_args(key, value, &arg[..])
     }
 
-    pub fn setexxx(&mut self, key: &str, value: &[u8], expiry: i64) -> Result<String, RedisError> {
+    pub fn setex_xx(&mut self, key: &str, value: &[u8], expiry: i64) -> Result<String, RedisError> {
         let arg = "EX ".to_string() + &expiry.to_string()[..] + &" XX".to_string();
         self.set_with_args(key, value, &arg[..])
     }
 
-    pub fn psetexnx(&mut self, key: &str, value: &[u8], expiry: i64) -> Result<String, RedisError> {
+    pub fn psetex_nx(&mut self, key: &str, value: &[u8], expiry: i64) -> Result<String, RedisError> {
         let arg = "PX ".to_string() + &expiry.to_string()[..] + &" NX".to_string();
         self.set_with_args(key, value, &arg[..])
     }
 
-    pub fn psetexxx(&mut self, key: &str, value: &[u8], expiry: i64) -> Result<String, RedisError> {
+    pub fn psetex_xx(&mut self, key: &str, value: &[u8], expiry: i64) -> Result<String, RedisError> {
         let arg = "PX ".to_string() + &expiry.to_string()[..] + &" XX".to_string();
         self.set_with_args(key, value, &arg[..])
     }
 
     pub fn ttl(&mut self, key: &str) -> Result<i64, RedisError> {
         let cmd = "TTL ".to_string() + &key + &"\r\n".to_string();
+
+        let res = try!(self.exec_command(cmd.as_bytes()));      
+        Ok(res.convert::<i64>())
+    }
+
+    pub fn zadd(&mut self, key: &str, score: f64, member: &[u8]) -> Result<i64, RedisError> {
+        let cmd = "ZADD ".to_string() + &key + &" ".to_string() + &score.to_string() + &" ".to_string();
+
+        let mut cmd_bytes: Vec<u8> = cmd.into_bytes();
+
+        cmd_bytes.extend(member.iter().cloned());
+
+        let res = try!(self.exec_command(&*cmd_bytes));      
+        Ok(res.convert::<i64>())
+    }
+
+    pub fn zadd_with_args(&mut self, key: &str, score: f64, member: &[u8], args: &str) -> Result<i64, RedisError> {
+        let cmd = "ZADD ".to_string() + &key + &" ".to_string() + &args + &" ".to_string() + &score.to_string() + &" ".to_string();
+
+        let mut cmd_bytes: Vec<u8> = cmd.into_bytes();
+
+        cmd_bytes.extend(member.iter().cloned());
+        cmd_bytes.extend([13,10].iter().cloned()); //ADD CRLF at the end of the command
+
+        let res = try!(self.exec_command(&*cmd_bytes));      
+        Ok(res.convert::<i64>())
+    }
+
+    pub fn zaddnx(&mut self, score: f64, key: &str, member: &[u8]) -> Result<i64, RedisError> {
+        let arg = "NX".to_string();
+        self.zadd_with_args(key, score, member, &arg[..])
+    }
+
+    pub fn zaddxx(&mut self, score: f64, key: &str, member: &[u8]) -> Result<i64, RedisError> {
+        let arg = "XX".to_string();
+        self.zadd_with_args(key, score, member, &arg[..])
+    }
+
+    pub fn zaddnx_ch(&mut self, score: f64, key: &str, member: &[u8]) -> Result<i64, RedisError> {
+        let arg = "NX ".to_string() + &" CH".to_string();
+        self.zadd_with_args(key, score, member, &arg[..])
+    }
+
+    pub fn zaddxx_ch(&mut self, score: f64, key: &str, member: &[u8]) -> Result<i64, RedisError> {
+        let arg = "XX ".to_string() + &" CH".to_string();
+        self.zadd_with_args(key, score, member, &arg[..])
+    }
+
+    pub fn zcard(&mut self, key: &str) -> Result<i64, RedisError> {
+        let cmd = "ZCARD ".to_string() + &key  + &"\r\n".to_string();
+
+        let res = try!(self.exec_command(cmd.as_bytes()));      
+        Ok(res.convert::<i64>())
+    }
+
+    pub fn zcount(&mut self, key: &str, start_range: &str, end_range: &str) -> Result<i64, RedisError> {
+        let cmd = "ZCOUNT ".to_string() + &key  + &" ".to_string() + &start_range.to_string() + &" ".to_string() + &end_range.to_string() +  &"\r\n".to_string();
+
+        let res = try!(self.exec_command(cmd.as_bytes()));      
+        Ok(res.convert::<i64>())
+    }
+
+    pub fn zincrby<T: From<RedisResult>>(&mut self, key: &str, increment: f64, member: &[u8]) -> Result<T, RedisError> {
+        let cmd = "ZINCRBY ".to_string() + &key  + &" ".to_string() + &increment.to_string()+ &" ".to_string();
+
+        let mut cmd_bytes: Vec<u8> = cmd.into_bytes();
+
+        cmd_bytes.extend(member.iter().cloned());
+        cmd_bytes.extend([13,10].iter().cloned()); //ADD CRLF at the end of the command
+
+        let res = try!(self.exec_command(&*cmd_bytes));      
+        Ok(res.convert::<T>())
+    }
+
+    pub fn zrange(&mut self, key: &str, start_range: i64, end_range: i64) -> Result<i64, RedisError> {
+        let cmd = "ZRANGE ".to_string() + &key  + &" ".to_string() + &start_range.to_string() + &" ".to_string() + &end_range.to_string() +  &"\r\n".to_string();
+
+        let res = try!(self.exec_command(cmd.as_bytes()));      
+        Ok(res.convert::<i64>())
+    }
+
+    pub fn zrange_with_scores(&mut self, key: &str, start_range: i64, end_range: i64) -> Result<i64, RedisError> {
+        let cmd = "ZRANGE ".to_string() + &key  + &" ".to_string() + &start_range.to_string() + &" ".to_string() + &end_range.to_string() +  &"WHITHSCORES\r\n".to_string();
 
         let res = try!(self.exec_command(cmd.as_bytes()));      
         Ok(res.convert::<i64>())
