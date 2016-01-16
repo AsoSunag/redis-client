@@ -1,6 +1,7 @@
 use errors::RedisError;
 use reader::Reader;
 use results::RedisResult;
+use std::collections::HashMap;
 use std::fmt;
 use std::io::BufReader;
 use std::io::prelude::*;
@@ -144,7 +145,121 @@ impl RedisClient {
         Ok(res.convert::<T>())
     }
 
-    pub fn select(db_index: u32) -> Result<String, RedisError> {
+    pub fn hdel(&mut self, key: &str, field: &str) -> Result<i64, RedisError> {
+        self.hmdel(key, vec![field.to_string()])
+    }
+
+    pub fn hmdel(&mut self, key: &str, fields: Vec<String>) -> Result<i64, RedisError> {
+        let mut cmd = "HDEL ".to_string() + &key;
+
+        for field in fields {
+            cmd = cmd + &" ".to_string() + &field;
+        }
+        cmd = cmd + &"\r\n".to_string();
+        let res = try!(self.exec_command(cmd.as_bytes()));      
+        Ok(res.convert::<i64>())
+    }
+
+    pub fn hexists(&mut self, key: &str, field: &str) -> Result<i64, RedisError> {
+        let cmd = "HEXISTS ".to_string() + &key + &" ".to_string() + &field + &"\r\n".to_string();
+
+        let res = try!(self.exec_command(cmd.as_bytes()));      
+        Ok(res.convert::<i64>())
+    }
+
+    pub fn hget(&mut self, key: &str, field: &str) -> Result<String, RedisError> {
+        let cmd = "HGET ".to_string() + &key + &" ".to_string() + &field + &"\r\n".to_string();
+
+        let res = try!(self.exec_command(cmd.as_bytes()));      
+        Ok(res.convert::<String>())
+    }
+
+    pub fn hgetall(&mut self, key: &str) -> Result<HashMap<String, String>, RedisError> {
+        let cmd = "HGETALL ".to_string() + &key + &"\r\n".to_string();
+
+        let res = try!(self.exec_command(cmd.as_bytes()));      
+        Ok(res.convert::<HashMap<String, String>>())
+    }
+
+    pub fn hincrby(&mut self, key: &str, field: &str, increment: i64) -> Result<i64, RedisError> {
+        let cmd = "HINCRBY ".to_string() + &key + &" ".to_string() + &field + &" ".to_string() + &increment.to_string() + &"\r\n".to_string();
+
+        let res = try!(self.exec_command(cmd.as_bytes()));      
+        Ok(res.convert::<i64>())
+    }
+
+    pub fn hincrbyfloat(&mut self, key: &str, field: &str, increment: f64) -> Result<String, RedisError> {
+        let cmd = "HINCRBYFLOAT ".to_string() + &key + &" ".to_string() + &field + &" ".to_string() + &increment.to_string() + &"\r\n".to_string();
+
+        let res = try!(self.exec_command(cmd.as_bytes()));      
+        Ok(res.convert::<String>())
+    }
+
+    pub fn hkeys(&mut self, key: &str) -> Result<Vec<String>, RedisError> {
+        let cmd = "HKEYS ".to_string() + &key + &"\r\n".to_string();
+
+        let res = try!(self.exec_command(cmd.as_bytes()));      
+        Ok(res.convert::<Vec<String>>())
+    }
+
+    pub fn hlen(&mut self, key: &str) -> Result<i64, RedisError> {
+        let cmd = "HLEN ".to_string() + &key + &"\r\n".to_string();
+
+        let res = try!(self.exec_command(cmd.as_bytes()));      
+        Ok(res.convert::<i64>())
+    }
+
+    pub fn hmget(&mut self, key: &str, fields: Vec<String>) -> Result<Vec<String>, RedisError> {
+        let mut cmd = "HMGET ".to_string() + &key;
+
+        for field in fields {
+            cmd = cmd + &" ".to_string() + &field;
+        }
+        cmd = cmd + &"\r\n".to_string();
+        let res = try!(self.exec_command(cmd.as_bytes()));      
+        Ok(res.convert::<Vec<String>>())
+    }
+
+    pub fn hmset(&mut self, key: &str, fields: HashMap<String, String>) -> Result<String, RedisError> {
+        let mut cmd = "HMSET ".to_string() + &key;
+
+        for (field, value) in fields {
+            cmd = cmd + &" ".to_string() + &field + &" ".to_string() + &value;
+        }
+        cmd = cmd + &"\r\n".to_string();
+        let res = try!(self.exec_command(cmd.as_bytes()));      
+        Ok(res.convert::<String>())
+    }
+
+    pub fn hset(&mut self, key: &str, field: &str, value: &str) -> Result<i64, RedisError> {
+        let cmd = "HSET ".to_string() + &key + &" ".to_string() + &field + &" ".to_string() + &value + &"\r\n".to_string();
+
+        let res = try!(self.exec_command(cmd.as_bytes()));      
+        Ok(res.convert::<i64>())
+    }
+
+    pub fn hstrlen(&mut self, key: &str, field: &str) -> Result<i64, RedisError> {
+        let cmd = "HSTRLEN ".to_string() + &key + &" ".to_string() + &field + &"\r\n".to_string();
+
+        let res = try!(self.exec_command(cmd.as_bytes()));      
+        Ok(res.convert::<i64>())
+    }
+
+    pub fn hsetnx(&mut self, key: &str, field: &str, value: &str) -> Result<i64, RedisError> {
+        let cmd = "HSETNX ".to_string() + &key + &" ".to_string() + &field + &" ".to_string() + &value + &"\r\n".to_string();
+
+        let res = try!(self.exec_command(cmd.as_bytes()));      
+        Ok(res.convert::<i64>())
+    }
+
+    pub fn hvals(&mut self, key: &str) -> Result<Vec<String>, RedisError> {
+        let cmd = "HVALS ".to_string() + &key + &"\r\n".to_string();
+
+        let res = try!(self.exec_command(cmd.as_bytes()));      
+        Ok(res.convert::<Vec<String>>())
+    }
+
+    pub fn select(&mut self, db_index: u32) -> Result<String, RedisError> {
         let cmd = "SELECT ".to_string() + &db_index.to_string() + &"\r\n".to_string();
 
         let res = try!(self.exec_command(cmd.as_bytes()));      
