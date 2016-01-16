@@ -144,6 +144,13 @@ impl RedisClient {
         Ok(res.convert::<T>())
     }
 
+    pub fn select(db_index: u32) -> Result<String, RedisError> {
+        let cmd = "SELECT ".to_string() + &db_index.to_string() + &"\r\n".to_string();
+
+        let res = try!(self.exec_command(cmd.as_bytes()));      
+        Ok(res.convert::<String>())
+    }
+
 
     pub fn set(&mut self, key: &str, value: &[u8]) -> Result<String, RedisError> {
         let cmd = "SET ".to_string() + &key + &" ".to_string();
