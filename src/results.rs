@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::fmt;
 use std::str;
 
@@ -63,10 +64,30 @@ impl From<RedisResult> for Vec<String> {
                 }
                 retval
             },
-            RedisResult::Bytes(value) => vec![],
+            RedisResult::Bytes(_value) => vec![],
             RedisResult::String(value) => vec![value],
             RedisResult::Int(value) => vec![value.to_string()],
             RedisResult::Nil => vec![],
+        }
+    }
+}
+
+impl From<RedisResult> for HashMap<String, String> {
+    fn from(result: RedisResult) -> HashMap<String, String> {
+        match result {
+            RedisResult::Array(value) => {
+                let mut retval = HashMap::new();
+                let mut key = String::new();
+                for (index, res) in value.into_iter().enumerate() {
+                    if index % 2 == 0 {
+                        key = res.convert::<String>();
+                    } else {
+                        retval.insert(key.to_string(), res.convert::<String>());
+                    }
+                }
+                retval
+            },
+            _ => HashMap::new(),
         }
     }
 }
