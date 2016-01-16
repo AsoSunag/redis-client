@@ -32,8 +32,21 @@ impl fmt::Display for RedisResult {
 impl From<RedisResult> for String {
     fn from(result: RedisResult) -> String {
         match result {
-            RedisResult::Array(_value) => "Array cannot be stringified".to_string(),
-            RedisResult::Bytes(value) => str::from_utf8(&value).unwrap().to_string(),
+            RedisResult::Array(value) => {
+                let mut retval: String = "[".to_string();
+                for res in value {
+                    retval = retval + &res.convert::<String>() + &",".to_string();
+                }
+                retval = retval + &"]".to_string();
+                retval
+            },
+            RedisResult::Bytes(value) => {
+                let result = str::from_utf8(&value);
+                match result {
+                    Ok(str_value) => str_value.to_string(),
+                    Err(err) => err.to_string(),
+                }
+            },
             RedisResult::String(value) => value,
             RedisResult::Int(value) => value.to_string(),
             RedisResult::Nil => "null".to_string(),
@@ -45,7 +58,7 @@ impl From<RedisResult> for String {
 impl From<RedisResult> for Vec<u8> {
     fn from(result: RedisResult) -> Vec<u8> {
         match result {
-            RedisResult::Array(_value) => vec![],
+            RedisResult::Array(value) => RedisResult::Array(value).convert::<String>().into_bytes(),
             RedisResult::Bytes(value) => value,
             RedisResult::String(value) => value.into_bytes(),
             RedisResult::Int(value) => value.to_string().into_bytes(),
@@ -64,7 +77,13 @@ impl From<RedisResult> for Vec<String> {
                 }
                 retval
             },
-            RedisResult::Bytes(_value) => vec![],
+            RedisResult::Bytes(value) => {
+                let result = str::from_utf8(&value);
+                match result {
+                    Ok(str_value) => vec![str_value.to_string()],
+                    Err(err) => vec![err.to_string()],
+                }
+            },
             RedisResult::String(value) => vec![value],
             RedisResult::Int(value) => vec![value.to_string()],
             RedisResult::Nil => vec![],
@@ -87,7 +106,29 @@ impl From<RedisResult> for HashMap<String, String> {
                 }
                 retval
             },
-            _ => HashMap::new(),
+            RedisResult::Bytes(value) => {
+                let str_value = RedisResult::Bytes(value).convert::<String>();
+                let mut retval = HashMap::new();
+                retval.insert("Stringified value".to_string(), str_value);
+                retval
+            },
+            RedisResult::String(value) => {
+                let mut retval = HashMap::new();
+                retval.insert("Stringified value".to_string(), value);
+                retval
+            },
+            RedisResult::Int(value) => {
+                let str_value = RedisResult::Int(value).convert::<String>();
+                let mut retval = HashMap::new();
+                retval.insert("Stringified value".to_string(), str_value);
+                retval
+            },
+            RedisResult::Nil => {
+                let str_value = RedisResult::Nil.convert::<String>();
+                let mut retval = HashMap::new();
+                retval.insert("Stringified value".to_string(), str_value);
+                retval
+            },
         }
     }
 }
