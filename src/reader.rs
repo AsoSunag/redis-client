@@ -13,8 +13,6 @@ impl Reader {
         let mut head_line = String::new();
         try!(buffer.read_line(&mut head_line));
 
-        println!("{:?}", head_line);
-
         let identifier = head_line.remove(0);
 
         match identifier{
@@ -73,7 +71,9 @@ impl Reader {
 
         if read_elmt_nb < 0 {
             Ok(RedisResult::Nil)
-        } else {
+        } else if read_elmt_nb == 0 {
+            Ok(RedisResult::Array(Vec::new()))
+        }else {
             let mut result: Vec<RedisResult> = Vec::with_capacity(read_elmt_nb as usize);
 
             loop {
@@ -88,7 +88,6 @@ impl Reader {
                     break;
                 }
             }
-
             Ok(RedisResult::Array(result))
         }
     }
