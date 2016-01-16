@@ -13,6 +13,8 @@ impl Reader {
         let mut head_line = String::new();
         try!(buffer.read_line(&mut head_line));
 
+        println!("{:?}", head_line);
+
         let identifier = head_line.remove(0);
 
         match identifier{
@@ -67,12 +69,12 @@ impl Reader {
     }
 
     fn read_array(array_str: & String, buffer: &mut BufReader<TcpStream>) -> Result<RedisResult, RedisError> {
-        let read_byte_nb: i64 = try!(array_str.trim().parse());
+        let mut read_elmt_nb: i64 = try!(array_str.trim().parse());
 
-        if read_byte_nb < 0 {
+        if read_elmt_nb < 0 {
             Ok(RedisResult::Nil)
         } else {
-            let mut result: Vec<RedisResult> = Vec::with_capacity(read_byte_nb as usize);
+            let mut result: Vec<RedisResult> = Vec::with_capacity(read_elmt_nb as usize);
 
             loop {
                 match Reader::read(buffer) {
@@ -81,8 +83,8 @@ impl Reader {
                     Err(err) => return Err(err),
                 };
 
-                --read_byte_nb;
-                if read_byte_nb == 0 {
+                read_elmt_nb = read_elmt_nb - 1;
+                if read_elmt_nb == 0 {
                     break;
                 }
             }
