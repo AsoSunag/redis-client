@@ -274,7 +274,7 @@ impl RedisClient {
         Ok(res.convert::<i64>())
     }
 
-    pub fn zincrby<T: From<RedisResult>>(&mut self, key: &str, increment: f64, member: &[u8]) -> Result<T, RedisError> {
+    pub fn zincrby(&mut self, key: &str, increment: f64, member: &[u8]) -> Result<String, RedisError> {
         let cmd = "ZINCRBY ".to_string() + &key  + &" ".to_string() + &increment.to_string()+ &" ".to_string();
 
         let mut cmd_bytes: Vec<u8> = cmd.into_bytes();
@@ -283,21 +283,21 @@ impl RedisClient {
         cmd_bytes.extend([13,10].iter().cloned()); //ADD CRLF at the end of the command
 
         let res = try!(self.exec_command(&*cmd_bytes));      
-        Ok(res.convert::<T>())
+        Ok(res.convert::<String>())
     }
 
-    pub fn zrange(&mut self, key: &str, start_range: i64, end_range: i64) -> Result<i64, RedisError> {
+    pub fn zrange(&mut self, key: &str, start_range: i64, end_range: i64) -> Result<Vec<String>, RedisError> {
         let cmd = "ZRANGE ".to_string() + &key  + &" ".to_string() + &start_range.to_string() + &" ".to_string() + &end_range.to_string() +  &"\r\n".to_string();
 
         let res = try!(self.exec_command(cmd.as_bytes()));      
-        Ok(res.convert::<i64>())
+        Ok(res.convert::<Vec<String>>())
     }
 
-    pub fn zrange_with_scores(&mut self, key: &str, start_range: i64, end_range: i64) -> Result<i64, RedisError> {
-        let cmd = "ZRANGE ".to_string() + &key  + &" ".to_string() + &start_range.to_string() + &" ".to_string() + &end_range.to_string() +  &"WHITHSCORES\r\n".to_string();
+    pub fn zrange_with_scores(&mut self, key: &str, start_range: i64, end_range: i64) -> Result<Vec<String>, RedisError> {
+        let cmd = "ZRANGE ".to_string() + &key  + &" ".to_string() + &start_range.to_string() + &" ".to_string() + &end_range.to_string() +  &" WITHSCORES\r\n".to_string();
 
-        let res = try!(self.exec_command(cmd.as_bytes()));      
-        Ok(res.convert::<i64>())
+        let res = try!(self.exec_command(cmd.as_bytes()));    
+        Ok(res.convert::<Vec<String>>())
     }
 
 }
