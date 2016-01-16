@@ -53,10 +53,28 @@ impl From<RedisResult> for Vec<u8> {
     }
 }
 
+impl From<RedisResult> for Vec<String> {
+    fn from(result: RedisResult) -> Vec<String> {
+        match result {
+            RedisResult::Array(value) => {
+                let mut retval = Vec::new();
+                for res in value {
+                    retval.push(res.convert::<String>());
+                }
+                retval
+            },
+            RedisResult::Bytes(value) => vec![],
+            RedisResult::String(value) => vec![value],
+            RedisResult::Int(value) => vec![value.to_string()],
+            RedisResult::Nil => vec![],
+        }
+    }
+}
+
 impl From<RedisResult> for i64 {
     fn from(result: RedisResult) -> i64 {
         match result {
-            RedisResult::Array(_value_value) => 0,
+            RedisResult::Array(_value) => 0,
             RedisResult::Bytes(_value) => 0,
             RedisResult::String(_value) => 0,
             RedisResult::Int(value) => value,
