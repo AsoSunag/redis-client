@@ -1,3 +1,4 @@
+use commands::RedisCommand;
 use errors::RedisError;
 use reader::Reader;
 use results::RedisResult;
@@ -40,37 +41,42 @@ impl RedisClient {
     }
 
     pub fn append<K, V>(&mut self, key: K, value: V) -> Result<i64, RedisError> where K: ToString, V: ToString {
-    	let cmd = "APPEND ".to_string() + &key.to_string().to_string() + &" ".to_string() + &value.to_string() + &"\r\n".to_string();
+        let cmd = &mut RedisCommand::new();
+        cmd.append(key, value);
 
-        let res = try!(self.exec_command(cmd.as_bytes()));      
+        let res = try!(self.exec_command(cmd.into()));     
         Ok(res.convert::<i64>())
     }
 
     pub fn auth<P>(&mut self, password: P) -> Result<String, RedisError> where P: ToString {
-        let cmd = "AUTH ".to_string() + &password.to_string() + &"\r\n".to_string();
+        let cmd = &mut RedisCommand::new();
+        cmd.auth(password);
 
-        let res = try!(self.exec_command(cmd.as_bytes()));      
+        let res = try!(self.exec_command(cmd.into()));      
         Ok(res.convert::<String>())
     }
 
     pub fn bgrewriteaof(&mut self) -> Result<String, RedisError> {
-        let cmd = "BGREWRITEAOF\r\n".to_string();
+        let cmd = &mut RedisCommand::new();
+        cmd.bgrewriteaof();
 
-        let res = try!(self.exec_command(cmd.as_bytes()));      
+        let res = try!(self.exec_command(cmd.into()));      
         Ok(res.convert::<String>())
     }
 
     pub fn bgsave(&mut self) -> Result<String, RedisError> {
-        let cmd = "BGSAVE\r\n".to_string();
+        let cmd = &mut RedisCommand::new();
+        cmd.bgsave();
 
-        let res = try!(self.exec_command(cmd.as_bytes()));      
+        let res = try!(self.exec_command(cmd.into()));      
         Ok(res.convert::<String>())
     }
 
     pub fn bitcount<K>(&mut self, key: K) -> Result<i64, RedisError> where K: ToString {
-    	let cmd = "BITCOUNT ".to_string() + &key.to_string().to_string() + &"\r\n".to_string();
+    	let cmd = &mut RedisCommand::new();
+        cmd.bitcount(key);
 
-        let res = try!(self.exec_command(cmd.as_bytes()));      
+        let res = try!(self.exec_command(cmd.into()));      
         Ok(res.convert::<i64>())
     }
 

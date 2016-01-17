@@ -1,3 +1,4 @@
+mod commands;
 mod errors;
 mod reader;
 mod redis;
