@@ -39,15 +39,15 @@ impl RedisClient {
         Reader::read(&mut self.buffer)
     }
 
-    pub fn append(&mut self, key: &str, value: &str) -> Result<i64, RedisError> {
-    	let cmd = "APPEND ".to_string() + &key + &" ".to_string() + &value + &"\r\n".to_string();
+    pub fn append<K, V>(&mut self, key: K, value: V) -> Result<i64, RedisError> where K: ToString, V: ToString {
+    	let cmd = "APPEND ".to_string() + &key.to_string().to_string() + &" ".to_string() + &value.to_string() + &"\r\n".to_string();
 
         let res = try!(self.exec_command(cmd.as_bytes()));      
         Ok(res.convert::<i64>())
     }
 
-    pub fn auth(&mut self, password: &str) -> Result<String, RedisError> {
-        let cmd = "AUTH ".to_string() + &password + &"\r\n".to_string();
+    pub fn auth<P>(&mut self, password: P) -> Result<String, RedisError> where P: ToString {
+        let cmd = "AUTH ".to_string() + &password.to_string() + &"\r\n".to_string();
 
         let res = try!(self.exec_command(cmd.as_bytes()));      
         Ok(res.convert::<String>())
@@ -67,22 +67,22 @@ impl RedisClient {
         Ok(res.convert::<String>())
     }
 
-    pub fn bitcount(&mut self, key: &str) -> Result<i64, RedisError> {
-    	let cmd = "BITCOUNT ".to_string() + &key + &"\r\n".to_string();
+    pub fn bitcount<K>(&mut self, key: K) -> Result<i64, RedisError> where K: ToString {
+    	let cmd = "BITCOUNT ".to_string() + &key.to_string().to_string() + &"\r\n".to_string();
 
         let res = try!(self.exec_command(cmd.as_bytes()));      
         Ok(res.convert::<i64>())
     }
 
-    pub fn bitcount_range(&mut self, key: &str, start_range: i64, end_range: i64) -> Result<i64, RedisError> {
-    	let cmd = "BITCOUNT ".to_string() + &key + &" ".to_string() + &start_range.to_string() + &" ".to_string() + &end_range.to_string() + &"\r\n".to_string();
+    pub fn bitcount_range<K>(&mut self, key: K, start_range: i64, end_range: i64) -> Result<i64, RedisError> where K: ToString {
+    	let cmd = "BITCOUNT ".to_string() + &key.to_string() + &" ".to_string() + &start_range.to_string() + &" ".to_string() + &end_range.to_string() + &"\r\n".to_string();
 
         let res = try!(self.exec_command(cmd.as_bytes()));      
         Ok(res.convert::<i64>())
     }
 
-    pub fn del(&mut self, key: &str) -> Result<i64, RedisError> {
-        let cmd = "DEL ".to_string() + &key + &"\r\n".to_string();
+    pub fn del<K>(&mut self, key: K) -> Result<i64, RedisError> where K: ToString {
+        let cmd = "DEL ".to_string() + &key.to_string() + &"\r\n".to_string();
 
         let res = try!(self.exec_command(cmd.as_bytes()));      
         Ok(res.convert::<i64>())
@@ -91,7 +91,7 @@ impl RedisClient {
     pub fn del_multi(&mut self, keys: Vec<String>) -> Result<i64, RedisError> {
         let mut cmd = "DEL".to_string();
         for key in keys {
-        	cmd = cmd + &" ".to_string() + &key;
+        	cmd = cmd + &" ".to_string() + &key.to_string();
         }
         cmd = cmd + &"\r\n".to_string();
 
@@ -99,8 +99,8 @@ impl RedisClient {
         Ok(res.convert::<i64>())
     }
 
-    pub fn exists(&mut self, key: &str) -> Result<i64, RedisError> {
-        let cmd = "EXISTS ".to_string() + &key + &"\r\n".to_string();
+    pub fn exists<K>(&mut self, key: K) -> Result<i64, RedisError> where K: ToString {
+        let cmd = "EXISTS ".to_string() + &key.to_string() + &"\r\n".to_string();
 
         let res = try!(self.exec_command(cmd.as_bytes()));      
         Ok(res.convert::<i64>())
@@ -109,7 +109,7 @@ impl RedisClient {
     pub fn exists_multi(&mut self, keys: Vec<String>) -> Result<i64, RedisError> {
         let mut cmd = "EXISTS".to_string();
         for key in keys {
-        	cmd = cmd + &" ".to_string() + &key;
+        	cmd = cmd + &" ".to_string() + &key.to_string();
         }
         cmd = cmd + &"\r\n".to_string();
 
@@ -117,40 +117,40 @@ impl RedisClient {
         Ok(res.convert::<i64>())
     }
 
-    pub fn expire(&mut self, key: &str, expiry: i64) -> Result<i64, RedisError> {
-        let cmd = "EXPIRE ".to_string() + &key + &" ".to_string() + &expiry.to_string() + &"\r\n".to_string();
+    pub fn expire<K>(&mut self, key: K, expiry: i64) -> Result<i64, RedisError> where K: ToString {
+        let cmd = "EXPIRE ".to_string() + &key.to_string() + &" ".to_string() + &expiry.to_string() + &"\r\n".to_string();
 
         let res = try!(self.exec_command(cmd.as_bytes()));      
         Ok(res.convert::<i64>())
     }
 
-    pub fn expireat(&mut self, key: &str, timestamp: i64) -> Result<i64, RedisError> {
-        let cmd = "EXPIREAT ".to_string() + &key + &" ".to_string() + &timestamp.to_string() + &"\r\n".to_string();
+    pub fn expireat<K>(&mut self, key: K, timestamp: i64) -> Result<i64, RedisError> where K: ToString {
+        let cmd = "EXPIREAT ".to_string() + &key.to_string() + &" ".to_string() + &timestamp.to_string() + &"\r\n".to_string();
 
         let res = try!(self.exec_command(cmd.as_bytes()));      
         Ok(res.convert::<i64>())
     }
 
-    pub fn get<T: From<RedisResult>>(&mut self, key: &str) -> Result<T, RedisError> {
-        let cmd = "GET ".to_string() + &key + &"\r\n".to_string();
+    pub fn get<K, R>(&mut self, key: K) -> Result<R, RedisError> where K: ToString, R: From<RedisResult> {
+        let cmd = "GET ".to_string() + &key.to_string() + &"\r\n".to_string();
 
         let res = try!(self.exec_command(cmd.as_bytes()));      
-        Ok(res.convert::<T>())
+        Ok(res.convert::<R>())
     }
 
-    pub fn getrange<T: From<RedisResult>>(&mut self, key: &str, start_range: i64, end_range: i64) -> Result<T, RedisError> {
-        let cmd = "GETRANGE ".to_string() + &key  + &" ".to_string() + &start_range.to_string() + &" ".to_string() + &end_range.to_string() +  &"\r\n".to_string();
+    pub fn getrange<K, R>(&mut self, key: K, start_range: i64, end_range: i64) -> Result<R, RedisError> where K: ToString, R: From<RedisResult> {
+        let cmd = "GETRANGE ".to_string() + &key.to_string()  + &" ".to_string() + &start_range.to_string() + &" ".to_string() + &end_range.to_string() +  &"\r\n".to_string();
 
         let res = try!(self.exec_command(cmd.as_bytes()));      
-        Ok(res.convert::<T>())
+        Ok(res.convert::<R>())
     }
 
-    pub fn hdel(&mut self, key: &str, field: &str) -> Result<i64, RedisError> {
-        self.hmdel(key, vec![field.to_string()])
+    pub fn hdel<K, F>(&mut self, key: K, field: F) -> Result<i64, RedisError> where K: ToString, F: ToString {
+        self.hmdel(key.to_string(), vec![field.to_string()])
     }
 
-    pub fn hmdel(&mut self, key: &str, fields: Vec<String>) -> Result<i64, RedisError> {
-        let mut cmd = "HDEL ".to_string() + &key;
+    pub fn hmdel<K>(&mut self, key: K, fields: Vec<String>) -> Result<i64, RedisError> where K: ToString {
+        let mut cmd = "HDEL ".to_string() + &key.to_string();
 
         for field in fields {
             cmd = cmd + &" ".to_string() + &field;
@@ -160,100 +160,100 @@ impl RedisClient {
         Ok(res.convert::<i64>())
     }
 
-    pub fn hexists(&mut self, key: &str, field: &str) -> Result<i64, RedisError> {
-        let cmd = "HEXISTS ".to_string() + &key + &" ".to_string() + &field + &"\r\n".to_string();
+    pub fn hexists<K, F>(&mut self, key: K, field: F) -> Result<i64, RedisError> where K: ToString, F: ToString {
+        let cmd = "HEXISTS ".to_string() + &key.to_string() + &" ".to_string() + &field.to_string() + &"\r\n".to_string();
 
         let res = try!(self.exec_command(cmd.as_bytes()));      
         Ok(res.convert::<i64>())
     }
 
-    pub fn hget(&mut self, key: &str, field: &str) -> Result<String, RedisError> {
-        let cmd = "HGET ".to_string() + &key + &" ".to_string() + &field + &"\r\n".to_string();
+    pub fn hget<K, F>(&mut self, key: K, field: F) -> Result<String, RedisError> where K: ToString, F: ToString {
+        let cmd = "HGET ".to_string() + &key.to_string() + &" ".to_string() + &field.to_string() + &"\r\n".to_string();
 
         let res = try!(self.exec_command(cmd.as_bytes()));      
         Ok(res.convert::<String>())
     }
 
-    pub fn hgetall(&mut self, key: &str) -> Result<HashMap<String, String>, RedisError> {
-        let cmd = "HGETALL ".to_string() + &key + &"\r\n".to_string();
+    pub fn hgetall<K>(&mut self, key: K) -> Result<HashMap<String, String>, RedisError> where K: ToString {
+        let cmd = "HGETALL ".to_string() + &key.to_string() + &"\r\n".to_string();
 
         let res = try!(self.exec_command(cmd.as_bytes()));      
         Ok(res.convert::<HashMap<String, String>>())
     }
 
-    pub fn hincrby(&mut self, key: &str, field: &str, increment: i64) -> Result<i64, RedisError> {
-        let cmd = "HINCRBY ".to_string() + &key + &" ".to_string() + &field + &" ".to_string() + &increment.to_string() + &"\r\n".to_string();
+    pub fn hincrby<K, F>(&mut self, key: K, field: F, increment: i64) -> Result<i64, RedisError> where K: ToString, F: ToString {
+        let cmd = "HINCRBY ".to_string() + &key.to_string() + &" ".to_string() + &field.to_string() + &" ".to_string() + &increment.to_string() + &"\r\n".to_string();
 
         let res = try!(self.exec_command(cmd.as_bytes()));      
         Ok(res.convert::<i64>())
     }
 
-    pub fn hincrbyfloat(&mut self, key: &str, field: &str, increment: f64) -> Result<String, RedisError> {
-        let cmd = "HINCRBYFLOAT ".to_string() + &key + &" ".to_string() + &field + &" ".to_string() + &increment.to_string() + &"\r\n".to_string();
+    pub fn hincrbyfloat<K, F>(&mut self, key: K, field: F, increment: f64) -> Result<String, RedisError> where K: ToString, F: ToString {
+        let cmd = "HINCRBYFLOAT ".to_string() + &key.to_string() + &" ".to_string() + &field.to_string() + &" ".to_string() + &increment.to_string() + &"\r\n".to_string();
 
         let res = try!(self.exec_command(cmd.as_bytes()));      
         Ok(res.convert::<String>())
     }
 
-    pub fn hkeys(&mut self, key: &str) -> Result<Vec<String>, RedisError> {
-        let cmd = "HKEYS ".to_string() + &key + &"\r\n".to_string();
+    pub fn hkeys<K>(&mut self, key: K) -> Result<Vec<String>, RedisError> where K: ToString {
+        let cmd = "HKEYS ".to_string() + &key.to_string() + &"\r\n".to_string();
 
         let res = try!(self.exec_command(cmd.as_bytes()));      
         Ok(res.convert::<Vec<String>>())
     }
 
-    pub fn hlen(&mut self, key: &str) -> Result<i64, RedisError> {
-        let cmd = "HLEN ".to_string() + &key + &"\r\n".to_string();
+    pub fn hlen<K>(&mut self, key: K) -> Result<i64, RedisError> where K: ToString {
+        let cmd = "HLEN ".to_string() + &key.to_string() + &"\r\n".to_string();
 
         let res = try!(self.exec_command(cmd.as_bytes()));      
         Ok(res.convert::<i64>())
     }
 
-    pub fn hmget(&mut self, key: &str, fields: Vec<String>) -> Result<Vec<String>, RedisError> {
-        let mut cmd = "HMGET ".to_string() + &key;
+    pub fn hmget<K>(&mut self, key: K, fields: Vec<String>) -> Result<Vec<String>, RedisError> where K: ToString {
+        let mut cmd = "HMGET ".to_string() + &key.to_string();
 
         for field in fields {
-            cmd = cmd + &" ".to_string() + &field;
+            cmd = cmd + &" ".to_string() + &field.to_string();
         }
         cmd = cmd + &"\r\n".to_string();
         let res = try!(self.exec_command(cmd.as_bytes()));      
         Ok(res.convert::<Vec<String>>())
     }
 
-    pub fn hmset(&mut self, key: &str, fields: HashMap<String, String>) -> Result<String, RedisError> {
-        let mut cmd = "HMSET ".to_string() + &key;
+    pub fn hmset<K>(&mut self, key: K, fields: HashMap<String, String>) -> Result<String, RedisError> where K: ToString {
+        let mut cmd = "HMSET ".to_string() + &key.to_string();
 
         for (field, value) in fields {
-            cmd = cmd + &" ".to_string() + &field + &" ".to_string() + &value;
+            cmd = cmd + &" ".to_string() + &field.to_string() + &" ".to_string() + &value;
         }
         cmd = cmd + &"\r\n".to_string();
         let res = try!(self.exec_command(cmd.as_bytes()));      
         Ok(res.convert::<String>())
     }
 
-    pub fn hset(&mut self, key: &str, field: &str, value: &str) -> Result<i64, RedisError> {
-        let cmd = "HSET ".to_string() + &key + &" ".to_string() + &field + &" ".to_string() + &value + &"\r\n".to_string();
+    pub fn hset<K, F, V>(&mut self, key: K, field: F, value: V) -> Result<i64, RedisError> where K: ToString, F: ToString, V: ToString {
+        let cmd = "HSET ".to_string() + &key.to_string() + &" ".to_string() + &field.to_string() + &" ".to_string() + &value.to_string() + &"\r\n".to_string();
 
         let res = try!(self.exec_command(cmd.as_bytes()));      
         Ok(res.convert::<i64>())
     }
 
-    pub fn hstrlen(&mut self, key: &str, field: &str) -> Result<i64, RedisError> {
-        let cmd = "HSTRLEN ".to_string() + &key + &" ".to_string() + &field + &"\r\n".to_string();
+    pub fn hstrlen<K, F, V>(&mut self, key: K, field: F) -> Result<i64, RedisError> where K: ToString, F: ToString, V: ToString {
+        let cmd = "HSTRLEN ".to_string() + &key.to_string() + &" ".to_string() + &field.to_string() + &"\r\n".to_string();
 
         let res = try!(self.exec_command(cmd.as_bytes()));      
         Ok(res.convert::<i64>())
     }
 
-    pub fn hsetnx(&mut self, key: &str, field: &str, value: &str) -> Result<i64, RedisError> {
-        let cmd = "HSETNX ".to_string() + &key + &" ".to_string() + &field + &" ".to_string() + &value + &"\r\n".to_string();
+    pub fn hsetnx<K, F, V>(&mut self, key: K, field: F, value: V) -> Result<i64, RedisError> where K: ToString, F: ToString, V: ToString {
+        let cmd = "HSETNX ".to_string() + &key.to_string() + &" ".to_string() + &field.to_string() + &" ".to_string() + &value.to_string() + &"\r\n".to_string();
 
         let res = try!(self.exec_command(cmd.as_bytes()));      
         Ok(res.convert::<i64>())
     }
 
-    pub fn hvals(&mut self, key: &str) -> Result<Vec<String>, RedisError> {
-        let cmd = "HVALS ".to_string() + &key + &"\r\n".to_string();
+    pub fn hvals<K>(&mut self, key: K) -> Result<Vec<String>, RedisError> where K: ToString {
+        let cmd = "HVALS ".to_string() + &key.to_string() + &"\r\n".to_string();
 
         let res = try!(self.exec_command(cmd.as_bytes()));      
         Ok(res.convert::<Vec<String>>())
@@ -266,92 +266,81 @@ impl RedisClient {
         Ok(res.convert::<String>())
     }
 
+    pub fn set<K, V>(&mut self, key: K, value: V) -> Result<String, RedisError> where K: ToString, V: ToString {
+        let val: &[u8] = &*value.to_string().into_bytes();
+        self.set_binary_with_args(key, val, "")
+    }
 
-    pub fn set(&mut self, key: &str, value: &[u8]) -> Result<String, RedisError> {
-        let cmd = "SET ".to_string() + &key + &" ".to_string();
+    pub fn set_binary_with_args<K, A>(&mut self, key: K, value: &[u8], args: A) -> Result<String, RedisError> where K: ToString, A: ToString {
+        let cmd = "SET ".to_string() + &key.to_string() + &" ".to_string();
 
         let mut cmd_bytes: Vec<u8> = cmd.into_bytes();
 
         cmd_bytes.extend(value.iter().cloned());
-
-        let res = try!(self.exec_command(&*cmd_bytes));      
-        Ok(res.convert::<String>())
-    }
-
-    pub fn set_with_args(&mut self, key: &str, value: &[u8], args: &str) -> Result<String, RedisError> {
-        let cmd = "SET ".to_string() + &key + &" ".to_string();
-
-        let mut cmd_bytes: Vec<u8> = cmd.into_bytes();
-
-        cmd_bytes.extend(value.iter().cloned());
-        cmd_bytes.extend([32].iter().cloned()); // ADD SPACE
-        cmd_bytes.extend(args.as_bytes().iter().cloned());
+        if args.to_string().len() > 0 {
+            cmd_bytes.extend([32].iter().cloned()); // ADD SPACE
+            cmd_bytes.extend(args.to_string().into_bytes().iter().cloned());
+        }
+        
         cmd_bytes.extend([13,10].iter().cloned()); //ADD CRLF at the end of the command
 
         let res = try!(self.exec_command(&*cmd_bytes));      
         Ok(res.convert::<String>())
     }
 
-    pub fn setex(&mut self, key: &str, value: &[u8], expiry: i64) -> Result<String, RedisError> {
-        let arg = "EX ".to_string() + &expiry.to_string()[..];
-        self.set_with_args(key, value, &arg[..])
+    pub fn setex<K, V>(&mut self, key: K, value: String, expiry: i64) -> Result<String, RedisError> where K: ToString, V: ToString  {
+        let args = "EX ".to_string() + &expiry.to_string();
+        self.set_binary_with_args(key, &*value.to_string().into_bytes(), args)
     }
 
-    pub fn psetex(&mut self, key: &str, value: &[u8], expiry: i64) -> Result<String, RedisError> {
-        let arg = "PX ".to_string() + &expiry.to_string()[..];
-        self.set_with_args(key, value, &arg[..])
+    pub fn psetex<K, V>(&mut self, key: K, value: String, expiry: i64) -> Result<String, RedisError> where K: ToString, V: ToString  {
+        let args = "PX ".to_string() + &expiry.to_string();
+        self.set_binary_with_args(key, &*value.to_string().into_bytes(), args)
     }
 
-    pub fn setnx(&mut self, key: &str, value: &[u8]) -> Result<String, RedisError> {
-        let arg = "NX".to_string();
-        self.set_with_args(key, value, &arg[..])
+    pub fn setnx<K, V>(&mut self, key: K, value: String) -> Result<String, RedisError> where K: ToString, V: ToString {
+        let args = "NX".to_string();
+        self.set_binary_with_args(key, &*value.to_string().into_bytes(), args)
     }
 
-    pub fn setxx(&mut self, key: &str, value: &[u8]) -> Result<String, RedisError> {
-        let arg = "XX".to_string();
-        self.set_with_args(key, value, &arg[..])
+    pub fn setxx<K, V>(&mut self, key: K, value: String) -> Result<String, RedisError> where K: ToString, V: ToString {
+        let args = "XX".to_string();
+        self.set_binary_with_args(key, &*value.to_string().into_bytes(), args)
     }
 
-    pub fn setex_nx(&mut self, key: &str, value: &[u8], expiry: i64) -> Result<String, RedisError> {
-        let arg = "EX ".to_string() + &expiry.to_string()[..] + &" NX".to_string();
-        self.set_with_args(key, value, &arg[..])
+    pub fn setex_nx<K, V>(&mut self, key: K, value: String, expiry: i64) -> Result<String, RedisError> where K: ToString, V: ToString {
+        let args = "EX ".to_string() + &expiry.to_string() + &" NX".to_string();
+        self.set_binary_with_args(key, &*value.into_bytes(), args)
     }
 
-    pub fn setex_xx(&mut self, key: &str, value: &[u8], expiry: i64) -> Result<String, RedisError> {
-        let arg = "EX ".to_string() + &expiry.to_string()[..] + &" XX".to_string();
-        self.set_with_args(key, value, &arg[..])
+    pub fn setex_xx<K, V>(&mut self, key: K, value: String, expiry: i64) -> Result<String, RedisError> where K: ToString, V: ToString {
+        let args = "EX ".to_string() + &expiry.to_string() + &" XX".to_string();
+        self.set_binary_with_args(key, &*value.to_string().into_bytes(), args)
     }
 
-    pub fn psetex_nx(&mut self, key: &str, value: &[u8], expiry: i64) -> Result<String, RedisError> {
-        let arg = "PX ".to_string() + &expiry.to_string()[..] + &" NX".to_string();
-        self.set_with_args(key, value, &arg[..])
+    pub fn psetex_nx<K, V>(&mut self, key: K, value: String, expiry: i64) -> Result<String, RedisError> where K: ToString, V: ToString {
+        let args = "PX ".to_string() + &expiry.to_string() + &" NX".to_string();
+        self.set_binary_with_args(key, &*value.to_string().into_bytes(), args)
     }
 
-    pub fn psetex_xx(&mut self, key: &str, value: &[u8], expiry: i64) -> Result<String, RedisError> {
-        let arg = "PX ".to_string() + &expiry.to_string()[..] + &" XX".to_string();
-        self.set_with_args(key, value, &arg[..])
+    pub fn psetex_xx<K, V>(&mut self, key: K, value: String, expiry: i64) -> Result<String, RedisError> where K: ToString, V: ToString {
+        let args = "PX ".to_string() + &expiry.to_string() + &" XX".to_string();
+        self.set_binary_with_args(key, &*value.to_string().into_bytes(), args)
     }
 
-    pub fn ttl(&mut self, key: &str) -> Result<i64, RedisError> {
-        let cmd = "TTL ".to_string() + &key + &"\r\n".to_string();
+    pub fn ttl<K>(&mut self, key: K) -> Result<i64, RedisError> where K: ToString {
+        let cmd = "TTL ".to_string() + &key.to_string() + &"\r\n".to_string();
 
         let res = try!(self.exec_command(cmd.as_bytes()));      
         Ok(res.convert::<i64>())
     }
 
-    pub fn zadd(&mut self, key: &str, score: f64, member: &[u8]) -> Result<i64, RedisError> {
-        let cmd = "ZADD ".to_string() + &key + &" ".to_string() + &score.to_string() + &" ".to_string();
-
-        let mut cmd_bytes: Vec<u8> = cmd.into_bytes();
-
-        cmd_bytes.extend(member.iter().cloned());
-
-        let res = try!(self.exec_command(&*cmd_bytes));      
-        Ok(res.convert::<i64>())
+    pub fn zadd<K, V>(&mut self, key: K, score: f64, member: V) -> Result<i64, RedisError> where K: ToString, V: ToString {
+        self.zadd_binary_with_args(key, score, &member.to_string().into_bytes()[..], "")
     }
 
-    pub fn zadd_with_args(&mut self, key: &str, score: f64, member: &[u8], args: &str) -> Result<i64, RedisError> {
-        let cmd = "ZADD ".to_string() + &key + &" ".to_string() + &args + &" ".to_string() + &score.to_string() + &" ".to_string();
+    pub fn zadd_binary_with_args<K, A>(&mut self, key: K, score: f64, member: &[u8], args: A) -> Result<i64, RedisError> where K: ToString, A: ToString {
+        let cmd = "ZADD ".to_string() + &key.to_string() + &" ".to_string() + &args.to_string() + &" ".to_string() + &score.to_string() + &" ".to_string();
 
         let mut cmd_bytes: Vec<u8> = cmd.into_bytes();
 
@@ -362,61 +351,56 @@ impl RedisClient {
         Ok(res.convert::<i64>())
     }
 
-    pub fn zaddnx(&mut self, score: f64, key: &str, member: &[u8]) -> Result<i64, RedisError> {
-        let arg = "NX".to_string();
-        self.zadd_with_args(key, score, member, &arg[..])
+    pub fn zaddnx<K, V>(&mut self, score: f64, key: K, member: V) -> Result<i64, RedisError> where K: ToString, V: ToString {
+        let args = "NX".to_string();
+        self.zadd_binary_with_args(key, score, &member.to_string().into_bytes()[..], args)
     }
 
-    pub fn zaddxx(&mut self, score: f64, key: &str, member: &[u8]) -> Result<i64, RedisError> {
-        let arg = "XX".to_string();
-        self.zadd_with_args(key, score, member, &arg[..])
+    pub fn zaddxx<K, V>(&mut self, score: f64, key: K, member: V) -> Result<i64, RedisError> where K: ToString, V: ToString {
+        let args = "XX".to_string();
+        self.zadd_binary_with_args(key, score, &member.to_string().into_bytes()[..], args)
     }
 
-    pub fn zaddnx_ch(&mut self, score: f64, key: &str, member: &[u8]) -> Result<i64, RedisError> {
-        let arg = "NX ".to_string() + &" CH".to_string();
-        self.zadd_with_args(key, score, member, &arg[..])
+    pub fn zaddnx_ch<K, V>(&mut self, score: f64, key: K, member: V) -> Result<i64, RedisError> where K: ToString, V: ToString {
+        let args = "NX ".to_string() + &" CH".to_string();
+        self.zadd_binary_with_args(key, score, &member.to_string().into_bytes()[..], args)
     }
 
-    pub fn zaddxx_ch(&mut self, score: f64, key: &str, member: &[u8]) -> Result<i64, RedisError> {
-        let arg = "XX ".to_string() + &" CH".to_string();
-        self.zadd_with_args(key, score, member, &arg[..])
+    pub fn zaddxx_ch<K, V>(&mut self, score: f64, key: K, member: V) -> Result<i64, RedisError> where K: ToString, V: ToString {
+        let args = "XX ".to_string() + &" CH".to_string();
+        self.zadd_binary_with_args(key, score, &member.to_string().into_bytes()[..], args)
     }
 
-    pub fn zcard(&mut self, key: &str) -> Result<i64, RedisError> {
-        let cmd = "ZCARD ".to_string() + &key  + &"\r\n".to_string();
+    pub fn zcard<K>(&mut self, key: K) -> Result<i64, RedisError> where K: ToString {
+        let cmd = "ZCARD ".to_string() + &key.to_string()  + &"\r\n".to_string();
 
         let res = try!(self.exec_command(cmd.as_bytes()));      
         Ok(res.convert::<i64>())
     }
 
-    pub fn zcount(&mut self, key: &str, start_range: &str, end_range: &str) -> Result<i64, RedisError> {
-        let cmd = "ZCOUNT ".to_string() + &key  + &" ".to_string() + &start_range.to_string() + &" ".to_string() + &end_range.to_string() +  &"\r\n".to_string();
+    pub fn zcount<K, S, E>(&mut self, key: K, start_range: S, end_range: E) -> Result<i64, RedisError> where K: ToString, S: ToString, E: ToString  {
+        let cmd = "ZCOUNT ".to_string() + &key.to_string()  + &" ".to_string() + &start_range.to_string() + &" ".to_string() + &end_range.to_string() +  &"\r\n".to_string();
 
         let res = try!(self.exec_command(cmd.as_bytes()));      
         Ok(res.convert::<i64>())
     }
 
-    pub fn zincrby(&mut self, key: &str, increment: f64, member: &[u8]) -> Result<String, RedisError> {
-        let cmd = "ZINCRBY ".to_string() + &key  + &" ".to_string() + &increment.to_string()+ &" ".to_string();
+    pub fn zincrby<K, V>(&mut self, key: K, increment: f64, member: V) -> Result<String, RedisError> where K: ToString, V: ToString {
+        let cmd = "ZINCRBY ".to_string() + &key.to_string()  + &" ".to_string() + &increment.to_string()+ &" ".to_string() + &member.to_string() + &"\r\n".to_string();
 
-        let mut cmd_bytes: Vec<u8> = cmd.into_bytes();
-
-        cmd_bytes.extend(member.iter().cloned());
-        cmd_bytes.extend([13,10].iter().cloned()); //ADD CRLF at the end of the command
-
-        let res = try!(self.exec_command(&*cmd_bytes));      
+        let res = try!(self.exec_command(cmd.as_bytes()));      
         Ok(res.convert::<String>())
     }
 
-    pub fn zrange(&mut self, key: &str, start_range: i64, end_range: i64) -> Result<Vec<String>, RedisError> {
-        let cmd = "ZRANGE ".to_string() + &key  + &" ".to_string() + &start_range.to_string() + &" ".to_string() + &end_range.to_string() +  &"\r\n".to_string();
+    pub fn zrange<K, S, E>(&mut self, key: K, start_range: S, end_range: E) -> Result<Vec<String>, RedisError> where K: ToString, S: ToString, E: ToString {
+        let cmd = "ZRANGE ".to_string() + &key.to_string()  + &" ".to_string() + &start_range.to_string() + &" ".to_string() + &end_range.to_string() +  &"\r\n".to_string();
 
         let res = try!(self.exec_command(cmd.as_bytes()));      
         Ok(res.convert::<Vec<String>>())
     }
 
-    pub fn zrange_with_scores(&mut self, key: &str, start_range: i64, end_range: i64) -> Result<Vec<String>, RedisError> {
-        let cmd = "ZRANGE ".to_string() + &key  + &" ".to_string() + &start_range.to_string() + &" ".to_string() + &end_range.to_string() +  &" WITHSCORES\r\n".to_string();
+    pub fn zrange_with_scores<K, S, E>(&mut self, key: K, start_range: S, end_range: E) -> Result<Vec<String>, RedisError> where K: ToString, S: ToString, E: ToString {
+        let cmd = "ZRANGE ".to_string() + &key.to_string()  + &" ".to_string() + &start_range.to_string() + &" ".to_string() + &end_range.to_string() +  &" WITHSCORES\r\n".to_string();
 
         let res = try!(self.exec_command(cmd.as_bytes()));    
         Ok(res.convert::<Vec<String>>())
