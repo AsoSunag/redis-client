@@ -7,3 +7,4 @@ mod results;
 pub use errors::{ParsingError, RedisError};
 pub use redis::RedisClient;
 pub use results::RedisResult;
+pub use commands::{CommandBuilder, CommandSender, RedisCommand};
