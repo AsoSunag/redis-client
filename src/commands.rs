@@ -146,6 +146,14 @@ generate_command_traits!{
         add_args(keys);
     }
 
+    fn discard() {
+        add_cmd("DISCARD");
+    }
+
+    fn exec() {
+        add_cmd("EXEC");
+    }
+
     fn exists<K: ToString>(key: K) {
         add_cmd("EXISTS");
         add_arg(key);
@@ -270,6 +278,10 @@ generate_command_traits!{
         add_arg(key);
     }
 
+    fn multi() {
+        add_cmd("MULTI");
+    }
+
     fn select(db_index: i32){
         add_cmd("SELECT");
         add_arg(db_index);
@@ -356,6 +368,20 @@ generate_command_traits!{
     fn ttl<K: ToString>(key: K) {
         add_cmd("TTL");
         add_arg(key);
+    }
+
+    fn unwatch() {
+        add_cmd("UNWATCH");
+    }
+
+    fn watch<K: ToString>(key: K) {
+        add_cmd("WATCH");
+        add_arg(key);
+    }
+
+    fn mwatch<K: ToString>(keys: Vec<K>) {
+        add_cmd("WATCH");
+        add_args(keys);
     }
 
     fn zadd<K: ToString, V: ToString>(key: K, score: f64, member: V) {
