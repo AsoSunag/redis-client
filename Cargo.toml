@@ -3,5 +3,6 @@ name = "redis-client"
 version = "0.1.0"
 authors = ["gautier.tanguy"]
 keywords = ["redis", "database"]
-description = "Redis client for Rust."
+description = "Redis client in Rust"
 homepage = "https://github.com/AsoSunag/redis-client"
+license = "MIT"
