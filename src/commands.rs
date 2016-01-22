@@ -25,13 +25,13 @@ impl RedisCommand {
         self
     }
 
-    pub fn add_arg<A>(&mut self, arg: A) -> &mut RedisCommand where A: ToString{
+    pub fn add_arg<A>(&mut self, arg: A) -> &mut RedisCommand where A: ToString {
         self.cmd.extend([32].iter().cloned()); 
         self.cmd.extend(arg.to_string().into_bytes());
         self
     }
 
-    pub fn add_args<A>(&mut self, args: Vec<A>) -> &mut RedisCommand where A: ToString{
+    pub fn add_args<A>(&mut self, args: Vec<A>) -> &mut RedisCommand where A: ToString {
         for arg in args {
             self.cmd.extend([32].iter().cloned()); 
             self.cmd.extend(arg.to_string().into_bytes());
@@ -451,6 +451,25 @@ generate_command_traits!{
         add_arg(member);
     }
 
+    fn zlexcount<K: ToString, S: ToString, E: ToString>(key: K, min: S, max: E) {
+        add_cmd("ZLEXCOUNT");
+        add_arg(key);
+        add_arg(min);
+        add_arg(max);
+    }
+
+    fn zrem<K: ToString, M: ToString>(key: K, member: M) {
+        add_cmd("ZREM");
+        add_arg(key);
+        add_arg(member);
+    }
+
+    fn mzrem<K: ToString, M: ToString>(key: K, members: Vec<M>) {
+        add_cmd("ZREM");
+        add_arg(key);
+        add_args(members);
+    }
+
     fn zrange<K: ToString, S: ToString, E: ToString>(key: K, start_range: S, end_range: E) {
         add_cmd("ZRANGE");
         add_arg(key);
@@ -460,6 +479,21 @@ generate_command_traits!{
 
     fn zrange_with_scores<K: ToString, S: ToString, E: ToString>(key: K, start_range: S, end_range: E) {
         add_cmd("ZRANGE");
+        add_arg(key);
+        add_arg(start_range);
+        add_arg(end_range);
+        add_arg("WITHSCORES");
+    }
+
+    fn zrevrange<K: ToString, S: ToString, E: ToString>(key: K, start_range: S, end_range: E) {
+        add_cmd("ZREVRANGE");
+        add_arg(key);
+        add_arg(start_range);
+        add_arg(end_range);
+    }
+
+    fn zrevrange_with_scores<K: ToString, S: ToString, E: ToString>(key: K, start_range: S, end_range: E) {
+        add_cmd("ZREVRANGE");
         add_arg(key);
         add_arg(start_range);
         add_arg(end_range);
