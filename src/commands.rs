@@ -39,7 +39,7 @@ impl RedisCommand {
         self
     }
 
-    pub fn add_arg_map(&mut self, args: HashMap<String, String>) -> &mut RedisCommand {
+    pub fn add_arg_map<F: ToString>(&mut self, args: HashMap<String, F>) -> &mut RedisCommand {
         for (arg, value) in args {
             self.cmd.extend([32].iter().cloned()); 
             self.cmd.extend(arg.to_string().into_bytes());
@@ -241,13 +241,13 @@ generate_command_traits!{
         add_arg(key);
     }
 
-    fn hmget<K: ToString>(key: K, fields: Vec<String>) {
+    fn hmget<K: ToString, F: ToString>(key: K, fields: Vec<F>) {
         add_cmd("HMGET");
         add_arg(key);
         add_args(fields);
     }
 
-    fn hmset<K: ToString>(key: K, fields: HashMap<String, String>) {
+    fn hmset<K: ToString>(key: K, fields: HashMap<String, K>) {
         add_cmd("HMSET");
         add_arg(key);
         add_arg_map(fields);
@@ -344,7 +344,7 @@ generate_command_traits!{
         add_arg(value);
         add_arg("EX");
         add_arg(expiry);
-        add_arg("NX");
+        add_arg("XX");
     }
 
     fn psetex_nx<K: ToString, V: ToString>(key: K, value: V, expiry: i64) {
@@ -398,7 +398,7 @@ generate_command_traits!{
         add_binary_arg(member);
     }
 
-    fn zaddnx<K: ToString, V: ToString>(score: f64, key: K, member: V) {
+    fn zaddnx<K: ToString, V: ToString>(key: K, score: f64, member: V) {
         add_cmd("ZADD");
         add_arg(key);
         add_arg("NX");
@@ -406,7 +406,7 @@ generate_command_traits!{
         add_arg(member);
     }
 
-    fn zaddxx<K: ToString, V: ToString>(score: f64, key: K, member: V) {
+    fn zaddxx<K: ToString, V: ToString>(key: K, score: f64, member: V) {
         add_cmd("ZADD");
         add_arg(key);
         add_arg("XX");
@@ -414,7 +414,7 @@ generate_command_traits!{
         add_arg(member);
     }
 
-    fn zaddnx_ch<K: ToString, V: ToString>(score: f64, key: K, member: V) {
+    fn zaddnx_ch<K: ToString, V: ToString>(key: K, score: f64, member: V) {
         add_cmd("ZADD");
         add_arg(key);
         add_arg("NX");
@@ -423,7 +423,7 @@ generate_command_traits!{
         add_arg(member);
     }
 
-    fn zaddxx_ch<K: ToString, V: ToString>(score: f64, key: K, member: V) {
+    fn zaddxx_ch<K: ToString, V: ToString>(key: K, score: f64, member: V) {
         add_cmd("ZADD");
         add_arg(key);
         add_arg("XX");
@@ -470,14 +470,14 @@ generate_command_traits!{
         add_args(members);
     }
 
-    fn zrange<K: ToString, S: ToString, E: ToString>(key: K, start_range: S, end_range: E) {
+    fn zrange<K: ToString>(key: K, start_range: i64, end_range: i64) {
         add_cmd("ZRANGE");
         add_arg(key);
         add_arg(start_range);
         add_arg(end_range);
     }
 
-    fn zrange_with_scores<K: ToString, S: ToString, E: ToString>(key: K, start_range: S, end_range: E) {
+    fn zrange_with_scores<K: ToString>(key: K, start_range: i64, end_range: i64) {
         add_cmd("ZRANGE");
         add_arg(key);
         add_arg(start_range);
@@ -485,14 +485,14 @@ generate_command_traits!{
         add_arg("WITHSCORES");
     }
 
-    fn zrevrange<K: ToString, S: ToString, E: ToString>(key: K, start_range: S, end_range: E) {
+    fn zrevrange<K: ToString>(key: K, start_range: i64, end_range: i64) {
         add_cmd("ZREVRANGE");
         add_arg(key);
         add_arg(start_range);
         add_arg(end_range);
     }
 
-    fn zrevrange_with_scores<K: ToString, S: ToString, E: ToString>(key: K, start_range: S, end_range: E) {
+    fn zrevrange_with_scores<K: ToString>(key: K, start_range: i64, end_range: i64) {
         add_cmd("ZREVRANGE");
         add_arg(key);
         add_arg(start_range);
