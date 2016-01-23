@@ -3,6 +3,8 @@
 
 # redis-client
 Redis client in Rust
+
+[Documentation](https://asosunag.github.io/redis-client/redis_client/)
  
 # Getting started
 
