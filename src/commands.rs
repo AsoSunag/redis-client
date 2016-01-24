@@ -5,6 +5,7 @@ use redis::RedisClient;
 
 pub struct RedisCommand {
     cmd: Vec<u8>,
+    cmd_nb: usize,
 }
 
 impl<'a> From<&'a mut RedisCommand> for &'a[u8] {
@@ -17,20 +18,24 @@ impl RedisCommand {
     pub fn new() -> RedisCommand {
         RedisCommand {
             cmd: vec![],
+            cmd_nb: 0,
         }
     }
 
+    /// Add a string representing the command (APPEND, GET, SET...) to the command. (Each command should start with this method)
     pub fn add_cmd<C>(&mut self, command: C) -> &mut RedisCommand where C: ToString {
         self.cmd.extend(command.to_string().into_bytes());
         self
     }
 
+    /// Add a whitespace and a string to the commands
     pub fn add_arg<A>(&mut self, arg: A) -> &mut RedisCommand where A: ToString {
         self.cmd.extend([32].iter().cloned()); 
         self.cmd.extend(arg.to_string().into_bytes());
         self
     }
 
+    /// Add a whitespace and a string for each one of the vector's items to the commands 
     pub fn add_args<A>(&mut self, args: Vec<A>) -> &mut RedisCommand where A: ToString {
         for arg in args {
             self.cmd.extend([32].iter().cloned()); 
@@ -39,6 +44,7 @@ impl RedisCommand {
         self
     }
 
+    /// Add a whitespace a key another whitespace and the value for each pair of the hash map to the curent command   
     pub fn add_arg_map<F: ToString>(&mut self, args: HashMap<String, F>) -> &mut RedisCommand {
         for (arg, value) in args {
             self.cmd.extend([32].iter().cloned()); 
@@ -48,16 +54,24 @@ impl RedisCommand {
         }
         self
     }
-            
+    
+    /// Add a whitespace and then an array of byte to the command        
     pub fn add_binary_arg(&mut self, arg: &[u8]) -> &mut RedisCommand {
         self.cmd.extend([32].iter().cloned()); 
         self.cmd.extend(arg.iter().cloned());
         self
     }
 
+    /// Teminate a command
     pub fn end(&mut self) -> &mut RedisCommand {
         self.cmd.extend([13, 10].iter().cloned());
+        self.cmd_nb += 1;
         self
+    }
+
+    /// Get the number of commands in the RedisCommand object
+    pub fn get_command_nb(&self) -> usize {
+        self.cmd_nb
     }
 }
 

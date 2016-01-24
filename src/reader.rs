@@ -8,6 +8,8 @@ use std::net::TcpStream;
 pub struct Reader;
 
 impl Reader {
+    /// Read the stream expecting one response.
+    /// Determine the type of the response
     pub fn read(buffer: &mut BufReader<TcpStream>) -> Result<RedisResult, RedisError> {
         
         let mut head_line = String::new();
@@ -25,6 +27,26 @@ impl Reader {
             }
     }
 
+    /// Read the stream and expect several responses
+    pub fn read_pipeline(buffer: &mut BufReader<TcpStream>, cmd_nb: usize) -> Result<Vec<RedisResult>, RedisError> {
+        let mut results: Vec<RedisResult> = Vec::with_capacity(cmd_nb);
+        let mut remaining_cmd = cmd_nb;
+        loop {
+            if remaining_cmd == 0 {
+                break;
+            }
+            remaining_cmd -= 1;
+
+            match Reader::read(buffer) {
+                Ok(value) => results.push(value),
+                Err(RedisError::Response(err)) => results.push(RedisResult::String(err)),
+                Err(err) => return Err(err),
+            };
+        }
+        Ok(results)
+    }
+
+    /// Read a bulk string response
     fn read_bulk_string(head_line: & String, buffer: &mut BufReader<TcpStream>) -> Result<RedisResult, RedisError> {
         let read_byte_nb: i64 = try!(head_line.trim().parse());
 
@@ -54,18 +76,22 @@ impl Reader {
         }
     }
 
+    /// Read a simple string response
     fn read_string(simple_str: & String) -> Result<RedisResult, RedisError> {
         Ok(RedisResult::String(simple_str.trim().to_string()))
     }
 
+    /// Read an integer response
     fn read_integer(integer_str: & String) -> Result<RedisResult, RedisError> {
         Ok(RedisResult::Int(try!(integer_str.trim().parse::<i64>())))
     }
 
+    /// Read an error response
     fn read_error(error_str: & String) -> Result<RedisResult, RedisError> {
         Err(RedisError::Response(error_str.to_string()))
     }
 
+    /// Read an array response
     fn read_array(array_str: & String, buffer: &mut BufReader<TcpStream>) -> Result<RedisResult, RedisError> {
         let mut read_elmt_nb: i64 = try!(array_str.trim().parse());
 
@@ -83,7 +109,7 @@ impl Reader {
                     Err(err) => return Err(err),
                 };
 
-                read_elmt_nb = read_elmt_nb - 1;
+                read_elmt_nb -= 1;
                 if read_elmt_nb == 0 {
                     break;
                 }

@@ -30,17 +30,30 @@ impl RedisClient {
             .map_err(|err| RedisError::Io(err))
     }
 
+    /// write a command to the stream
+    fn write_command(&mut self, buf_to_send: &[u8]) -> Result<usize, RedisError> {
+        let mut writer = self.buffer.get_mut() as &mut Write;
+        let size = try!(writer.write(buf_to_send));
+        Ok(size)
+    }
+
+    /// Execute a command received as an array of bytes
     fn exec_command(&mut self, buf_to_send: &[u8]) -> Result<RedisResult, RedisError> {
-        {
-            let mut writer = self.buffer.get_mut() as &mut Write;
-            try!(writer.write(buf_to_send));
-        }
+        try!(self.write_command(buf_to_send));
         
         Reader::read(&mut self.buffer)
     }
 
+    /// Execute a RedisCommand
     pub fn exec_redis_command(&mut self, redis_command: &mut RedisCommand) -> Result<RedisResult, RedisError> {
         self.exec_command(redis_command.into())
+    }
+
+    /// Execute a pipeline of RedisCommand
+    pub fn exec_redis_pipeline_command(&mut self, redis_command: &mut RedisCommand) -> Result<Vec<RedisResult>, RedisError> {
+        try!(self.write_command(redis_command.into()));
+
+        Reader::read_pipeline(&mut self.buffer, redis_command.get_command_nb())
     }
 
 }
