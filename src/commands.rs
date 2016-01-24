@@ -296,6 +296,29 @@ generate_command_traits!{
         add_cmd("MULTI");
     }
 
+    fn sadd<K: ToString, M: ToString>(key: K, member: M) {
+        add_cmd("SADD");
+        add_arg(key);
+        add_arg(member);
+    }
+
+    fn msadd<K: ToString, M: ToString>(key: K, members: Vec<M>) {
+        add_cmd("SADD");
+        add_arg(key);
+        add_args(members);
+    }
+
+    fn sadd_binary<K: ToString>(key: K, member: &[u8]) {
+        add_cmd("SADD");
+        add_arg(key);
+        add_binary_arg(member);
+    }
+
+    fn scard<K: ToString>(key: K) {
+        add_cmd("SCARD");
+        add_arg(key);
+    }
+
     fn select(db_index: i32){
         add_cmd("SELECT");
         add_arg(db_index);
@@ -377,6 +400,59 @@ generate_command_traits!{
         add_arg("PX");
         add_arg(expiry);
         add_arg("XX");
+    }
+
+    fn setbit<K: ToString>(key: K, offset: u32, bit: u8) {
+        add_cmd("SETBIT");
+        add_arg(key);
+        add_arg(offset);
+        add_arg(bit);
+    }
+
+    fn setrange<K: ToString, V: ToString>(key: K, offset: u32, value: V) {
+        add_cmd("SETRANGE");
+        add_arg(key);
+        add_arg(offset);
+        add_arg(value);
+    }
+
+    fn sismember<K: ToString, M: ToString>(key: K, member: M) {
+        add_cmd("SISMEMBER");
+        add_arg(key);
+        add_arg(member);
+    }
+
+    fn smembers<K: ToString>(key: K) {
+        add_cmd("SMEMBERS");
+        add_arg(key);
+    }
+
+    fn spop<K: ToString>(key: K) {
+        add_cmd("SPOP");
+        add_arg(key);
+    }
+
+    fn spop_count<K: ToString>(key: K, count: u32) {
+        add_cmd("SPOP");
+        add_arg(key);
+        add_arg(count);
+    }
+
+    fn srem<K: ToString, M: ToString>(key: K, member: M) {
+        add_cmd("SREM");
+        add_arg(key);
+        add_arg(member);
+    }
+
+    fn msrem<K: ToString, M: ToString>(key: K, members: Vec<M>) {
+        add_cmd("SREM");
+        add_arg(key);
+        add_args(members);
+    }
+
+    fn strlen<K: ToString>(key: K) {
+        add_cmd("STRLEN");
+        add_arg(key);
     }
 
     fn ttl<K: ToString>(key: K) {

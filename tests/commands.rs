@@ -283,6 +283,38 @@ fn multi_cmd_works() {
 }
 
 #[test]
+fn sadd_cmd_works() {
+    let cmd = &mut RedisCommand::new();
+    cmd.sadd("key", "member");
+
+    check_result(cmd.into(), b"SADD key member\r\n");
+}
+
+#[test]
+fn msadd_cmd_works() {
+    let cmd = &mut RedisCommand::new();
+    cmd.msadd("key", vec!["member1", "member2"]);
+
+    check_result(cmd.into(), b"SADD key member1 member2\r\n");
+}
+
+#[test]
+fn sadd_binary_cmd_works() {
+    let cmd = &mut RedisCommand::new();
+    cmd.sadd_binary("key", b"member");
+
+    check_result(cmd.into(), b"SADD key member\r\n");
+}
+
+#[test]
+fn scard_cmd_works() {
+    let cmd = &mut RedisCommand::new();
+    cmd.scard("key");
+
+    check_result(cmd.into(), b"SCARD key\r\n");
+}
+
+#[test]
 fn select_cmd_works() {
     let cmd = &mut RedisCommand::new();
     cmd.select(1);
@@ -368,6 +400,78 @@ fn psetex_xx_cmd_works() {
     cmd.psetex_xx("key", "value", 42);
 
     check_result(cmd.into(), b"SET key value PX 42 XX\r\n");
+}
+
+#[test]
+fn setbit_cmd_works() {
+    let cmd = &mut RedisCommand::new();
+    cmd.setbit("key", 42, 0);
+
+    check_result(cmd.into(), b"SETBIT key 42 0\r\n");
+}
+
+#[test]
+fn setrange_cmd_works() {
+    let cmd = &mut RedisCommand::new();
+    cmd.setrange("key", 42, "value");
+
+    check_result(cmd.into(), b"SETRANGE key 42 value\r\n");
+}
+
+#[test]
+fn sismember_cmd_works() {
+    let cmd = &mut RedisCommand::new();
+    cmd.sismember("key", "member");
+
+    check_result(cmd.into(), b"SISMEMBER key member\r\n");
+}
+
+#[test]
+fn smembers_cmd_works() {
+    let cmd = &mut RedisCommand::new();
+    cmd.smembers("key");
+
+    check_result(cmd.into(), b"SMEMBERS key\r\n");
+}
+
+#[test]
+fn spop_cmd_works() {
+    let cmd = &mut RedisCommand::new();
+    cmd.spop("key");
+
+    check_result(cmd.into(), b"SPOP key\r\n");
+}
+
+#[test]
+fn spop_count_cmd_works() {
+    let cmd = &mut RedisCommand::new();
+    cmd.spop_count("key", 2);
+
+    check_result(cmd.into(), b"SPOP key 2\r\n");
+}
+
+#[test]
+fn srem_cmd_works() {
+    let cmd = &mut RedisCommand::new();
+    cmd.srem("key", "member");
+
+    check_result(cmd.into(), b"SREM key member\r\n");
+}
+
+#[test]
+fn msrem_cmd_works() {
+    let cmd = &mut RedisCommand::new();
+    cmd.msrem("key", vec!["member1", "member2"]);
+
+    check_result(cmd.into(), b"SREM key member1 member2\r\n");
+}
+
+#[test]
+fn strlen_cmd_works() {
+    let cmd = &mut RedisCommand::new();
+    cmd.strlen("key");
+
+    check_result(cmd.into(), b"STRLEN key\r\n");
 }
 
 #[test]
