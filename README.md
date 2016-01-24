@@ -20,7 +20,7 @@ extern crate redis_client;
 use redis_client::commands::CommandSender;
 use redis_client::errors::RedisError;
 
-fn set_and_get()-> Result<String, RedisError> {
+fn set_and_get() -> Result<String, RedisError> {
     let mut client = try!(redis_client::RedisClient::new("localhost", "6379"));
     let set_result: String = try!(client.set("key", "value"));
     let get_result: String = try!(client.get("key"));
