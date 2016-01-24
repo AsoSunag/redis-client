@@ -545,6 +545,96 @@
 <span id="502">502</span>
 <span id="503">503</span>
 <span id="504">504</span>
+<span id="505">505</span>
+<span id="506">506</span>
+<span id="507">507</span>
+<span id="508">508</span>
+<span id="509">509</span>
+<span id="510">510</span>
+<span id="511">511</span>
+<span id="512">512</span>
+<span id="513">513</span>
+<span id="514">514</span>
+<span id="515">515</span>
+<span id="516">516</span>
+<span id="517">517</span>
+<span id="518">518</span>
+<span id="519">519</span>
+<span id="520">520</span>
+<span id="521">521</span>
+<span id="522">522</span>
+<span id="523">523</span>
+<span id="524">524</span>
+<span id="525">525</span>
+<span id="526">526</span>
+<span id="527">527</span>
+<span id="528">528</span>
+<span id="529">529</span>
+<span id="530">530</span>
+<span id="531">531</span>
+<span id="532">532</span>
+<span id="533">533</span>
+<span id="534">534</span>
+<span id="535">535</span>
+<span id="536">536</span>
+<span id="537">537</span>
+<span id="538">538</span>
+<span id="539">539</span>
+<span id="540">540</span>
+<span id="541">541</span>
+<span id="542">542</span>
+<span id="543">543</span>
+<span id="544">544</span>
+<span id="545">545</span>
+<span id="546">546</span>
+<span id="547">547</span>
+<span id="548">548</span>
+<span id="549">549</span>
+<span id="550">550</span>
+<span id="551">551</span>
+<span id="552">552</span>
+<span id="553">553</span>
+<span id="554">554</span>
+<span id="555">555</span>
+<span id="556">556</span>
+<span id="557">557</span>
+<span id="558">558</span>
+<span id="559">559</span>
+<span id="560">560</span>
+<span id="561">561</span>
+<span id="562">562</span>
+<span id="563">563</span>
+<span id="564">564</span>
+<span id="565">565</span>
+<span id="566">566</span>
+<span id="567">567</span>
+<span id="568">568</span>
+<span id="569">569</span>
+<span id="570">570</span>
+<span id="571">571</span>
+<span id="572">572</span>
+<span id="573">573</span>
+<span id="574">574</span>
+<span id="575">575</span>
+<span id="576">576</span>
+<span id="577">577</span>
+<span id="578">578</span>
+<span id="579">579</span>
+<span id="580">580</span>
+<span id="581">581</span>
+<span id="582">582</span>
+<span id="583">583</span>
+<span id="584">584</span>
+<span id="585">585</span>
+<span id="586">586</span>
+<span id="587">587</span>
+<span id="588">588</span>
+<span id="589">589</span>
+<span id="590">590</span>
+<span id="591">591</span>
+<span id="592">592</span>
+<span id="593">593</span>
+<span id="594">594</span>
 </pre><pre class='rust '>
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>collections</span>::<span class='ident'>HashMap</span>;
 <span class='kw'>use</span> <span class='ident'>errors</span>::<span class='ident'>RedisError</span>;
@@ -553,6 +643,7 @@
 
 <span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>RedisCommand</span> {
     <span class='ident'>cmd</span>: <span class='ident'>Vec</span><span class='op'>&lt;</span><span class='ident'>u8</span><span class='op'>&gt;</span>,
+    <span class='ident'>cmd_nb</span>: <span class='ident'>usize</span>,
 }
 
 <span class='kw'>impl</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span><span class='op'>&gt;</span> <span class='ident'>From</span><span class='op'>&lt;</span><span class='kw-2'>&amp;</span><span class='lifetime'>&#39;a</span> <span class='kw-2'>mut</span> <span class='ident'>RedisCommand</span><span class='op'>&gt;</span> <span class='kw'>for</span> <span class='kw-2'>&amp;</span><span class='lifetime'>&#39;a</span>[<span class='ident'>u8</span>] {
@@ -565,20 +656,24 @@
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>new</span>() <span class='op'>-&gt;</span> <span class='ident'>RedisCommand</span> {
         <span class='ident'>RedisCommand</span> {
             <span class='ident'>cmd</span>: <span class='macro'>vec</span><span class='macro'>!</span>[],
+            <span class='ident'>cmd_nb</span>: <span class='number'>0</span>,
         }
     }
 
+    <span class='doccomment'>/// Add a string representing the command (APPEND, GET, SET...) to the command. (Each command should start with this method)</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>add_cmd</span><span class='op'>&lt;</span><span class='ident'>C</span><span class='op'>&gt;</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>command</span>: <span class='ident'>C</span>) <span class='op'>-&gt;</span> <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>RedisCommand</span> <span class='kw'>where</span> <span class='ident'>C</span>: <span class='ident'>ToString</span> {
         <span class='self'>self</span>.<span class='ident'>cmd</span>.<span class='ident'>extend</span>(<span class='ident'>command</span>.<span class='ident'>to_string</span>().<span class='ident'>into_bytes</span>());
         <span class='self'>self</span>
     }
 
+    <span class='doccomment'>/// Add a whitespace and a string to the commands</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>add_arg</span><span class='op'>&lt;</span><span class='ident'>A</span><span class='op'>&gt;</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>arg</span>: <span class='ident'>A</span>) <span class='op'>-&gt;</span> <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>RedisCommand</span> <span class='kw'>where</span> <span class='ident'>A</span>: <span class='ident'>ToString</span> {
         <span class='self'>self</span>.<span class='ident'>cmd</span>.<span class='ident'>extend</span>([<span class='number'>32</span>].<span class='ident'>iter</span>().<span class='ident'>cloned</span>()); 
         <span class='self'>self</span>.<span class='ident'>cmd</span>.<span class='ident'>extend</span>(<span class='ident'>arg</span>.<span class='ident'>to_string</span>().<span class='ident'>into_bytes</span>());
         <span class='self'>self</span>
     }
 
+    <span class='doccomment'>/// Add a whitespace and a string for each one of the vector&#39;s items to the commands </span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>add_args</span><span class='op'>&lt;</span><span class='ident'>A</span><span class='op'>&gt;</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>args</span>: <span class='ident'>Vec</span><span class='op'>&lt;</span><span class='ident'>A</span><span class='op'>&gt;</span>) <span class='op'>-&gt;</span> <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>RedisCommand</span> <span class='kw'>where</span> <span class='ident'>A</span>: <span class='ident'>ToString</span> {
         <span class='kw'>for</span> <span class='ident'>arg</span> <span class='kw'>in</span> <span class='ident'>args</span> {
             <span class='self'>self</span>.<span class='ident'>cmd</span>.<span class='ident'>extend</span>([<span class='number'>32</span>].<span class='ident'>iter</span>().<span class='ident'>cloned</span>()); 
@@ -587,6 +682,7 @@
         <span class='self'>self</span>
     }
 
+    <span class='doccomment'>/// Add a whitespace a key another whitespace and the value for each pair of the hash map to the curent command   </span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>add_arg_map</span><span class='op'>&lt;</span><span class='ident'>F</span>: <span class='ident'>ToString</span><span class='op'>&gt;</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>args</span>: <span class='ident'>HashMap</span><span class='op'>&lt;</span><span class='ident'>String</span>, <span class='ident'>F</span><span class='op'>&gt;</span>) <span class='op'>-&gt;</span> <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>RedisCommand</span> {
         <span class='kw'>for</span> (<span class='ident'>arg</span>, <span class='ident'>value</span>) <span class='kw'>in</span> <span class='ident'>args</span> {
             <span class='self'>self</span>.<span class='ident'>cmd</span>.<span class='ident'>extend</span>([<span class='number'>32</span>].<span class='ident'>iter</span>().<span class='ident'>cloned</span>()); 
@@ -596,16 +692,24 @@
         }
         <span class='self'>self</span>
     }
-            
+    
+    <span class='doccomment'>/// Add a whitespace and then an array of byte to the command        </span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>add_binary_arg</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>arg</span>: <span class='kw-2'>&amp;</span>[<span class='ident'>u8</span>]) <span class='op'>-&gt;</span> <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>RedisCommand</span> {
         <span class='self'>self</span>.<span class='ident'>cmd</span>.<span class='ident'>extend</span>([<span class='number'>32</span>].<span class='ident'>iter</span>().<span class='ident'>cloned</span>()); 
         <span class='self'>self</span>.<span class='ident'>cmd</span>.<span class='ident'>extend</span>(<span class='ident'>arg</span>.<span class='ident'>iter</span>().<span class='ident'>cloned</span>());
         <span class='self'>self</span>
     }
 
+    <span class='doccomment'>/// Teminate a command</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>end</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>RedisCommand</span> {
         <span class='self'>self</span>.<span class='ident'>cmd</span>.<span class='ident'>extend</span>([<span class='number'>13</span>, <span class='number'>10</span>].<span class='ident'>iter</span>().<span class='ident'>cloned</span>());
+        <span class='self'>self</span>.<span class='ident'>cmd_nb</span> <span class='op'>+=</span> <span class='number'>1</span>;
         <span class='self'>self</span>
+    }
+
+    <span class='doccomment'>/// Get the number of commands in the RedisCommand object</span>
+    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>get_command_nb</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>usize</span> {
+        <span class='self'>self</span>.<span class='ident'>cmd_nb</span>
     }
 }
 
@@ -830,6 +934,29 @@
         <span class='ident'>add_cmd</span>(<span class='string'>&quot;MULTI&quot;</span>);
     }
 
+    <span class='kw'>fn</span> <span class='ident'>sadd</span><span class='op'>&lt;</span><span class='ident'>K</span>: <span class='ident'>ToString</span>, <span class='ident'>M</span>: <span class='ident'>ToString</span><span class='op'>&gt;</span>(<span class='ident'>key</span>: <span class='ident'>K</span>, <span class='ident'>member</span>: <span class='ident'>M</span>) {
+        <span class='ident'>add_cmd</span>(<span class='string'>&quot;SADD&quot;</span>);
+        <span class='ident'>add_arg</span>(<span class='ident'>key</span>);
+        <span class='ident'>add_arg</span>(<span class='ident'>member</span>);
+    }
+
+    <span class='kw'>fn</span> <span class='ident'>msadd</span><span class='op'>&lt;</span><span class='ident'>K</span>: <span class='ident'>ToString</span>, <span class='ident'>M</span>: <span class='ident'>ToString</span><span class='op'>&gt;</span>(<span class='ident'>key</span>: <span class='ident'>K</span>, <span class='ident'>members</span>: <span class='ident'>Vec</span><span class='op'>&lt;</span><span class='ident'>M</span><span class='op'>&gt;</span>) {
+        <span class='ident'>add_cmd</span>(<span class='string'>&quot;SADD&quot;</span>);
+        <span class='ident'>add_arg</span>(<span class='ident'>key</span>);
+        <span class='ident'>add_args</span>(<span class='ident'>members</span>);
+    }
+
+    <span class='kw'>fn</span> <span class='ident'>sadd_binary</span><span class='op'>&lt;</span><span class='ident'>K</span>: <span class='ident'>ToString</span><span class='op'>&gt;</span>(<span class='ident'>key</span>: <span class='ident'>K</span>, <span class='ident'>member</span>: <span class='kw-2'>&amp;</span>[<span class='ident'>u8</span>]) {
+        <span class='ident'>add_cmd</span>(<span class='string'>&quot;SADD&quot;</span>);
+        <span class='ident'>add_arg</span>(<span class='ident'>key</span>);
+        <span class='ident'>add_binary_arg</span>(<span class='ident'>member</span>);
+    }
+
+    <span class='kw'>fn</span> <span class='ident'>scard</span><span class='op'>&lt;</span><span class='ident'>K</span>: <span class='ident'>ToString</span><span class='op'>&gt;</span>(<span class='ident'>key</span>: <span class='ident'>K</span>) {
+        <span class='ident'>add_cmd</span>(<span class='string'>&quot;SCARD&quot;</span>);
+        <span class='ident'>add_arg</span>(<span class='ident'>key</span>);
+    }
+
     <span class='kw'>fn</span> <span class='ident'>select</span>(<span class='ident'>db_index</span>: <span class='ident'>i32</span>){
         <span class='ident'>add_cmd</span>(<span class='string'>&quot;SELECT&quot;</span>);
         <span class='ident'>add_arg</span>(<span class='ident'>db_index</span>);
@@ -911,6 +1038,59 @@
         <span class='ident'>add_arg</span>(<span class='string'>&quot;PX&quot;</span>);
         <span class='ident'>add_arg</span>(<span class='ident'>expiry</span>);
         <span class='ident'>add_arg</span>(<span class='string'>&quot;XX&quot;</span>);
+    }
+
+    <span class='kw'>fn</span> <span class='ident'>setbit</span><span class='op'>&lt;</span><span class='ident'>K</span>: <span class='ident'>ToString</span><span class='op'>&gt;</span>(<span class='ident'>key</span>: <span class='ident'>K</span>, <span class='ident'>offset</span>: <span class='ident'>u32</span>, <span class='ident'>bit</span>: <span class='ident'>u8</span>) {
+        <span class='ident'>add_cmd</span>(<span class='string'>&quot;SETBIT&quot;</span>);
+        <span class='ident'>add_arg</span>(<span class='ident'>key</span>);
+        <span class='ident'>add_arg</span>(<span class='ident'>offset</span>);
+        <span class='ident'>add_arg</span>(<span class='ident'>bit</span>);
+    }
+
+    <span class='kw'>fn</span> <span class='ident'>setrange</span><span class='op'>&lt;</span><span class='ident'>K</span>: <span class='ident'>ToString</span>, <span class='ident'>V</span>: <span class='ident'>ToString</span><span class='op'>&gt;</span>(<span class='ident'>key</span>: <span class='ident'>K</span>, <span class='ident'>offset</span>: <span class='ident'>u32</span>, <span class='ident'>value</span>: <span class='ident'>V</span>) {
+        <span class='ident'>add_cmd</span>(<span class='string'>&quot;SETRANGE&quot;</span>);
+        <span class='ident'>add_arg</span>(<span class='ident'>key</span>);
+        <span class='ident'>add_arg</span>(<span class='ident'>offset</span>);
+        <span class='ident'>add_arg</span>(<span class='ident'>value</span>);
+    }
+
+    <span class='kw'>fn</span> <span class='ident'>sismember</span><span class='op'>&lt;</span><span class='ident'>K</span>: <span class='ident'>ToString</span>, <span class='ident'>M</span>: <span class='ident'>ToString</span><span class='op'>&gt;</span>(<span class='ident'>key</span>: <span class='ident'>K</span>, <span class='ident'>member</span>: <span class='ident'>M</span>) {
+        <span class='ident'>add_cmd</span>(<span class='string'>&quot;SISMEMBER&quot;</span>);
+        <span class='ident'>add_arg</span>(<span class='ident'>key</span>);
+        <span class='ident'>add_arg</span>(<span class='ident'>member</span>);
+    }
+
+    <span class='kw'>fn</span> <span class='ident'>smembers</span><span class='op'>&lt;</span><span class='ident'>K</span>: <span class='ident'>ToString</span><span class='op'>&gt;</span>(<span class='ident'>key</span>: <span class='ident'>K</span>) {
+        <span class='ident'>add_cmd</span>(<span class='string'>&quot;SMEMBERS&quot;</span>);
+        <span class='ident'>add_arg</span>(<span class='ident'>key</span>);
+    }
+
+    <span class='kw'>fn</span> <span class='ident'>spop</span><span class='op'>&lt;</span><span class='ident'>K</span>: <span class='ident'>ToString</span><span class='op'>&gt;</span>(<span class='ident'>key</span>: <span class='ident'>K</span>) {
+        <span class='ident'>add_cmd</span>(<span class='string'>&quot;SPOP&quot;</span>);
+        <span class='ident'>add_arg</span>(<span class='ident'>key</span>);
+    }
+
+    <span class='kw'>fn</span> <span class='ident'>spop_count</span><span class='op'>&lt;</span><span class='ident'>K</span>: <span class='ident'>ToString</span><span class='op'>&gt;</span>(<span class='ident'>key</span>: <span class='ident'>K</span>, <span class='ident'>count</span>: <span class='ident'>u32</span>) {
+        <span class='ident'>add_cmd</span>(<span class='string'>&quot;SPOP&quot;</span>);
+        <span class='ident'>add_arg</span>(<span class='ident'>key</span>);
+        <span class='ident'>add_arg</span>(<span class='ident'>count</span>);
+    }
+
+    <span class='kw'>fn</span> <span class='ident'>srem</span><span class='op'>&lt;</span><span class='ident'>K</span>: <span class='ident'>ToString</span>, <span class='ident'>M</span>: <span class='ident'>ToString</span><span class='op'>&gt;</span>(<span class='ident'>key</span>: <span class='ident'>K</span>, <span class='ident'>member</span>: <span class='ident'>M</span>) {
+        <span class='ident'>add_cmd</span>(<span class='string'>&quot;SREM&quot;</span>);
+        <span class='ident'>add_arg</span>(<span class='ident'>key</span>);
+        <span class='ident'>add_arg</span>(<span class='ident'>member</span>);
+    }
+
+    <span class='kw'>fn</span> <span class='ident'>msrem</span><span class='op'>&lt;</span><span class='ident'>K</span>: <span class='ident'>ToString</span>, <span class='ident'>M</span>: <span class='ident'>ToString</span><span class='op'>&gt;</span>(<span class='ident'>key</span>: <span class='ident'>K</span>, <span class='ident'>members</span>: <span class='ident'>Vec</span><span class='op'>&lt;</span><span class='ident'>M</span><span class='op'>&gt;</span>) {
+        <span class='ident'>add_cmd</span>(<span class='string'>&quot;SREM&quot;</span>);
+        <span class='ident'>add_arg</span>(<span class='ident'>key</span>);
+        <span class='ident'>add_args</span>(<span class='ident'>members</span>);
+    }
+
+    <span class='kw'>fn</span> <span class='ident'>strlen</span><span class='op'>&lt;</span><span class='ident'>K</span>: <span class='ident'>ToString</span><span class='op'>&gt;</span>(<span class='ident'>key</span>: <span class='ident'>K</span>) {
+        <span class='ident'>add_cmd</span>(<span class='string'>&quot;STRLEN&quot;</span>);
+        <span class='ident'>add_arg</span>(<span class='ident'>key</span>);
     }
 
     <span class='kw'>fn</span> <span class='ident'>ttl</span><span class='op'>&lt;</span><span class='ident'>K</span>: <span class='ident'>ToString</span><span class='op'>&gt;</span>(<span class='ident'>key</span>: <span class='ident'>K</span>) {
