@@ -296,6 +296,18 @@ generate_command_traits!{
         add_cmd("MULTI");
     }
 
+    fn rename<K: ToString, N: ToString>(key: K, new_key: N) {
+        add_cmd("RENAME");
+        add_arg(key);
+        add_arg(new_key);
+    }
+
+    fn renamenx<K: ToString, N: ToString>(key: K, new_key: N) {
+        add_cmd("RENAMENX");
+        add_arg(key);
+        add_arg(new_key);
+    }
+
     fn sadd<K: ToString, M: ToString>(key: K, member: M) {
         add_cmd("SADD");
         add_arg(key);

@@ -283,6 +283,22 @@ fn multi_cmd_works() {
 }
 
 #[test]
+fn rename_cmd_works() {
+    let cmd = &mut RedisCommand::new();
+    cmd.rename("key", "new_key");
+
+    check_result(cmd.into(), b"RENAME key new_key\r\n");
+}
+
+#[test]
+fn renamenx_cmd_works() {
+    let cmd = &mut RedisCommand::new();
+    cmd.renamenx("key", "new_key");
+
+    check_result(cmd.into(), b"RENAMENX key new_key\r\n");
+}
+
+#[test]
 fn sadd_cmd_works() {
     let cmd = &mut RedisCommand::new();
     cmd.sadd("key", "member");
