@@ -1,7 +1,7 @@
 pub use errors::{ParsingError, RedisError};
-pub use redis::RedisClient;
+pub use redis::{RedisClient, RedisClientAsync};
 pub use results::RedisResult;
-pub use commands::{CommandBuilder, CommandSender, RedisCommand};
+pub use commands::{CommandBuilder, CommandSender, CommandSenderAsync, RedisCommand};
 
 pub mod commands;
 pub mod errors;

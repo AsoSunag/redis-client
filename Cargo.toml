@@ -1,8 +1,8 @@
 [package]
 name = "redis-client"
-version = "0.3.0"
+version = "0.4.0"
 authors = ["gautier.tanguy"]
-keywords = ["redis", "database"]
+keywords = ["redis", "database", "async", "sync"]
 description = "Redis client in Rust"
 homepage = "https://github.com/AsoSunag/redis-client"
 repository = "https://github.com/AsoSunag/redis-client"

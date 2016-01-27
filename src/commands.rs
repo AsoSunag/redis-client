@@ -1,7 +1,7 @@
-use std::collections::HashMap;
 use errors::RedisError;
+use redis::{RedisClient, RedisClientAsync};
 use results::RedisResult;
-use redis::RedisClient;
+use std::collections::HashMap;
 
 pub struct RedisCommand {
     cmd: Vec<u8>,
@@ -11,6 +11,12 @@ pub struct RedisCommand {
 impl<'a> From<&'a mut RedisCommand> for &'a[u8] {
     fn from(command: &mut RedisCommand) -> &[u8] {
         &command.cmd[..]
+    }
+}
+
+impl<'a> From<&'a mut RedisCommand> for Vec<u8> {
+    fn from(command: &mut RedisCommand) -> Vec<u8> {
+        command.cmd.clone()
     }
 }
 
@@ -112,6 +118,27 @@ macro_rules! generate_command_traits {
 
                     let res = try!(self.exec_redis_command(cmd));     
                     Ok(res.convert::<R>())
+                }
+            )*
+        }
+
+        pub trait CommandSenderAsync {
+            $(
+                fn $func_name<G: Fn(Result<RedisResult, RedisError>), $($($gen_id : $gen_type),*)*> (&mut self $(,$arg_name: $arg_type)*, callback: G) 
+                    -> Result<(), RedisError> where G: Send + 'static;
+            )*
+        }
+
+        impl CommandSenderAsync for RedisClientAsync{
+            $(
+                fn $func_name<G: Fn(Result<RedisResult, RedisError>), $($($gen_id : $gen_type),*)*> (&mut self $(,$arg_name: $arg_type)*, callback: G) 
+                    -> Result<(), RedisError> where G: Send + 'static 
+                {
+                    let cmd = &mut RedisCommand::new();
+                    cmd.$func_name($($arg_name),*);
+
+                    try!(self.exec_redis_command_async(cmd, callback));     
+                    Ok(())
                 }
             )*
         }
