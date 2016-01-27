@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["RedisCommand",""]],"trait":[["CommandBuilder",""],["CommandSender",""]]});
+initSidebarItems({"struct":[["RedisCommand",""]],"trait":[["CommandBuilder",""],["CommandSender",""],["CommandSenderAsync",""]]});

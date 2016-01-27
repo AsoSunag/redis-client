@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["RedisClient",""]]});
+initSidebarItems({"struct":[["RedisClient",""],["RedisClientAsync",""]]});

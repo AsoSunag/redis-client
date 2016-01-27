@@ -53,9 +53,9 @@
 <span id="10">10</span>
 </pre><pre class='rust '>
 <span class='kw'>pub</span> <span class='kw'>use</span> <span class='ident'>errors</span>::{<span class='ident'>ParsingError</span>, <span class='ident'>RedisError</span>};
-<span class='kw'>pub</span> <span class='kw'>use</span> <span class='ident'>redis</span>::<span class='ident'>RedisClient</span>;
+<span class='kw'>pub</span> <span class='kw'>use</span> <span class='ident'>redis</span>::{<span class='ident'>RedisClient</span>, <span class='ident'>RedisClientAsync</span>};
 <span class='kw'>pub</span> <span class='kw'>use</span> <span class='ident'>results</span>::<span class='ident'>RedisResult</span>;
-<span class='kw'>pub</span> <span class='kw'>use</span> <span class='ident'>commands</span>::{<span class='ident'>CommandBuilder</span>, <span class='ident'>CommandSender</span>, <span class='ident'>RedisCommand</span>};
+<span class='kw'>pub</span> <span class='kw'>use</span> <span class='ident'>commands</span>::{<span class='ident'>CommandBuilder</span>, <span class='ident'>CommandSender</span>, <span class='ident'>CommandSenderAsync</span>, <span class='ident'>RedisCommand</span>};
 
 <span class='kw'>pub</span> <span class='kw'>mod</span> <span class='ident'>commands</span>;
 <span class='kw'>pub</span> <span class='kw'>mod</span> <span class='ident'>errors</span>;
