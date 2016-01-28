@@ -1,7 +1,11 @@
+extern crate rand;
+
 use commands::RedisCommand;
 use errors::RedisError;
+use self::rand::Rng;
 use reader::Reader;
 use results::RedisResult;
+use std::collections::HashMap;
 use std::fmt;
 use std::io::BufReader;
 use std::io::prelude::*;
@@ -19,8 +23,9 @@ pub struct RedisClient {
 pub struct RedisClientAsync {
     port: &'static str,
     host: &'static str,
-    sender: Sender<Vec<u8>>,
-    callback_sender: Sender<Box<Fn(Result<RedisResult, RedisError>) + Send>>,
+    sender: Sender<(u32, Vec<u8>)>,
+    callbacks: HashMap<u32, Box<Fn(Result<RedisResult, RedisError>)>>,
+    receiver: Receiver<(u32, Result<RedisResult, RedisError>)>
 }
 
 impl RedisClient {
@@ -81,43 +86,38 @@ impl fmt::Display for RedisClient {
 
 impl RedisClientAsync {
     pub fn new(host: &'static str, port: &'static str) -> Result<RedisClientAsync, RedisError> {
-        let (tx, rx) = channel::<Vec<u8>>();
-        let (ctx, crx) = channel::<Box<Fn(Result<RedisResult, RedisError>) + Send>>();
-        let (itx, irx) = channel::<Option<RedisError>>();
+        let (sender_tx, sender_rx) = channel::<(u32, Vec<u8>)>();
+        let (init_tx, init_rx) = channel::<Option<RedisError>>();
+        let (receiver_tx, receiver_rx) = channel::<(u32, Result<RedisResult, RedisError>)>();
 
         thread::spawn(move || {
             let _client = RedisClient::new(host, port)
             .map(|mut redis_client| {
-                itx.send(None)
+                init_tx.send(None)
                 .map(|_| {
                     loop {
-                        match rx.recv() {
+                        match sender_rx.recv() {
                             Ok(value) => {
-                                match crx.recv() {
-                                    Ok(callback) => {
-                                        callback(redis_client.exec_command(&value[..]));
-                                    },
-                                    Err(_) => break,
-                                }
+                                let _res = receiver_tx.send((value.0, redis_client.exec_command(&value.1[..])));
                             },
                             Err(_) => break,
                         };
                     }
                 })
-                
             })
             .map_err(|error| {
-                let _res = itx.send(Some(error));
+                let _res = init_tx.send(Some(error));
             });
         });
 
-        match irx.recv() {
+        match init_rx.recv() {
             Ok(None) => {
                 Ok(RedisClientAsync {
                     port: port,
                     host: host,
-                    sender: tx,
-                    callback_sender: ctx,
+                    sender: sender_tx,
+                    receiver: receiver_rx,
+                    callbacks: HashMap::new()
                 })
             },
             Ok(Some(err)) =>  Err(err),
@@ -125,14 +125,35 @@ impl RedisClientAsync {
         }
     }
 
-    /// Execute a redis command and call the callback when it is done with the result
-    /// The return value indicates if the command was successfully launched
-    pub fn exec_redis_command_async<F>(&self, redis_command: &mut RedisCommand, callback: F) 
+    /// Execute a redis command and. The callback will be done when the command is executed and the pump method is called.
+    /// The return value indicates if the command was successfully launched.
+    pub fn exec_redis_command_async<F>(&mut self, redis_command: &mut RedisCommand, callback: F) 
         -> Result<(), RedisError> where F: Fn(Result<RedisResult, RedisError>), F: Send + 'static
     {
-        try!(self.sender.send(redis_command.into()));
-        try!(self.callback_sender.send(Box::new(callback)));
+        let mut rng = rand::thread_rng();
+        let key = rng.gen::<u32>();
+        try!(self.sender.send((key, redis_command.into())));
+        self.callbacks.insert(key, Box::new(callback));
         Ok(())
+    }
+
+    /// Pump the result and execute the callbacks with them. If no result are ready this function will return.
+    pub fn pump(&mut self) -> Result<(), RedisError> {
+        loop {
+            match self.receiver.try_recv() {
+                Ok(result) => {
+                    self.callbacks.remove(&result.0) 
+                        .map(|callback| {
+                            if result.1.is_ok() {
+
+                                callback(result.1.clone());
+                            }
+                        });
+                },
+                Err(TryRecvError::Empty) => return Ok(()),
+                Err(err) => return Err(RedisError::MpscTryRecv(err))
+            };
+        }
     }
 }
 

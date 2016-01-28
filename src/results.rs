@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::fmt;
 use std::str;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum RedisResult {
     Array(Vec<RedisResult>),
     Bytes(Vec<u8>),
