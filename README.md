@@ -77,7 +77,7 @@ fn async_get() -> Result<(), RedisError> {
 
         sleep(Duration::new(0, 1000 * 1000 * 1000));
 
-        // this method will call callback when their command executions are over.
+        // this method will call callbacks when their command executions are over.
         async_client.pump();
     }
 
