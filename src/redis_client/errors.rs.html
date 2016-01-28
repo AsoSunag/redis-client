@@ -178,16 +178,31 @@
 <span id="135">135</span>
 <span id="136">136</span>
 <span id="137">137</span>
+<span id="138">138</span>
+<span id="139">139</span>
+<span id="140">140</span>
+<span id="141">141</span>
+<span id="142">142</span>
+<span id="143">143</span>
+<span id="144">144</span>
+<span id="145">145</span>
+<span id="146">146</span>
+<span id="147">147</span>
+<span id="148">148</span>
+<span id="149">149</span>
+<span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
 </pre><pre class='rust '>
-<span class='kw'>use</span> <span class='ident'>results</span>::<span class='ident'>RedisResult</span>;
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>error</span>;
+<span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>error</span>::<span class='ident'>Error</span>;
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>fmt</span>;
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>io</span>;
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>num</span>;
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>str</span>;
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>sync</span>::<span class='ident'>mpsc</span>;
 
-<span class='attribute'>#[<span class='ident'>derive</span>(<span class='ident'>Debug</span>)]</span>
+<span class='attribute'>#[<span class='ident'>derive</span>(<span class='ident'>Debug</span>, <span class='ident'>Clone</span>)]</span>
 <span class='kw'>pub</span> <span class='kw'>enum</span> <span class='ident'>ParsingError</span> {
     <span class='ident'>BadIdentifier</span>(<span class='ident'>String</span>),
 }
@@ -222,8 +237,23 @@
     <span class='ident'>Parse</span>(<span class='ident'>ParsingError</span>),
     <span class='ident'>Response</span>(<span class='ident'>String</span>),
     <span class='ident'>MpscRecv</span>(<span class='ident'>mpsc</span>::<span class='ident'>RecvError</span>),
-    <span class='ident'>MpscSendBytes</span>(<span class='ident'>mpsc</span>::<span class='ident'>SendError</span><span class='op'>&lt;</span><span class='ident'>Vec</span><span class='op'>&lt;</span><span class='ident'>u8</span><span class='op'>&gt;&gt;</span>),
-    <span class='ident'>MpscSendCallback</span>(<span class='ident'>mpsc</span>::<span class='ident'>SendError</span><span class='op'>&lt;</span><span class='ident'>Box</span><span class='op'>&lt;</span><span class='ident'>Fn</span>(<span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>RedisResult</span>, <span class='ident'>RedisError</span><span class='op'>&gt;</span>) <span class='op'>+</span> <span class='ident'>Send</span><span class='op'>&gt;&gt;</span>),
+    <span class='ident'>MpscSendBytes</span>(<span class='ident'>mpsc</span>::<span class='ident'>SendError</span><span class='op'>&lt;</span>(<span class='ident'>u32</span>, <span class='ident'>Vec</span><span class='op'>&lt;</span><span class='ident'>u8</span><span class='op'>&gt;</span>)<span class='op'>&gt;</span>),
+    <span class='ident'>MpscTryRecv</span>(<span class='ident'>mpsc</span>::<span class='ident'>TryRecvError</span>),
+}
+
+<span class='kw'>impl</span> <span class='ident'>Clone</span> <span class='kw'>for</span> <span class='ident'>RedisError</span> {
+    <span class='kw'>fn</span> <span class='ident'>clone</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>RedisError</span> {
+        <span class='kw'>match</span> <span class='op'>*</span><span class='self'>self</span> {
+            <span class='ident'>RedisError</span>::<span class='ident'>Io</span>(<span class='kw-2'>ref</span> <span class='ident'>err</span>) <span class='op'>=&gt;</span> <span class='ident'>RedisError</span>::<span class='ident'>Io</span>(<span class='ident'>io</span>::<span class='ident'>Error</span>::<span class='ident'>new</span>(<span class='ident'>err</span>.<span class='ident'>kind</span>(), <span class='ident'>err</span>.<span class='ident'>description</span>())),
+            <span class='ident'>RedisError</span>::<span class='ident'>Utf8</span>(<span class='kw-2'>ref</span> <span class='ident'>err</span>) <span class='op'>=&gt;</span> <span class='ident'>RedisError</span>::<span class='ident'>Utf8</span>(<span class='ident'>err</span>.<span class='ident'>clone</span>()),
+            <span class='ident'>RedisError</span>::<span class='ident'>ParseInt</span>(<span class='kw-2'>ref</span> <span class='ident'>err</span>) <span class='op'>=&gt;</span> <span class='ident'>RedisError</span>::<span class='ident'>ParseInt</span>(<span class='ident'>err</span>.<span class='ident'>clone</span>()),
+            <span class='ident'>RedisError</span>::<span class='ident'>Parse</span>(<span class='kw-2'>ref</span> <span class='ident'>err</span>) <span class='op'>=&gt;</span> <span class='ident'>RedisError</span>::<span class='ident'>Parse</span>(<span class='ident'>err</span>.<span class='ident'>clone</span>()),
+            <span class='ident'>RedisError</span>::<span class='ident'>Response</span>(<span class='kw-2'>ref</span> <span class='ident'>err</span>) <span class='op'>=&gt;</span> <span class='ident'>RedisError</span>::<span class='ident'>Response</span>(<span class='ident'>err</span>.<span class='ident'>clone</span>()),
+            <span class='ident'>RedisError</span>::<span class='ident'>MpscRecv</span>(<span class='kw-2'>ref</span> <span class='ident'>err</span>) <span class='op'>=&gt;</span> <span class='ident'>RedisError</span>::<span class='ident'>MpscRecv</span>(<span class='ident'>err</span>.<span class='ident'>clone</span>()),
+            <span class='ident'>RedisError</span>::<span class='ident'>MpscSendBytes</span>(<span class='kw-2'>ref</span> <span class='ident'>err</span>) <span class='op'>=&gt;</span> <span class='ident'>RedisError</span>::<span class='ident'>MpscSendBytes</span>(<span class='ident'>err</span>.<span class='ident'>clone</span>()),
+            <span class='ident'>RedisError</span>::<span class='ident'>MpscTryRecv</span>(<span class='kw-2'>ref</span> <span class='ident'>err</span>) <span class='op'>=&gt;</span> <span class='ident'>RedisError</span>::<span class='ident'>MpscTryRecv</span>(<span class='ident'>err</span>.<span class='ident'>clone</span>()),
+        }
+    }
 }
 
 <span class='kw'>impl</span> <span class='ident'>fmt</span>::<span class='ident'>Display</span> <span class='kw'>for</span> <span class='ident'>RedisError</span> {
@@ -236,7 +266,7 @@
             <span class='ident'>RedisError</span>::<span class='ident'>Response</span>(<span class='kw-2'>ref</span> <span class='ident'>err</span>) <span class='op'>=&gt;</span> <span class='macro'>write</span><span class='macro'>!</span>(<span class='ident'>f</span>, <span class='string'>&quot;Response error: {}&quot;</span>, <span class='ident'>err</span>),
             <span class='ident'>RedisError</span>::<span class='ident'>MpscRecv</span>(<span class='kw-2'>ref</span> <span class='ident'>err</span>) <span class='op'>=&gt;</span> <span class='macro'>write</span><span class='macro'>!</span>(<span class='ident'>f</span>, <span class='string'>&quot;MpscRecv error: {}&quot;</span>, <span class='ident'>err</span>),
             <span class='ident'>RedisError</span>::<span class='ident'>MpscSendBytes</span>(<span class='kw-2'>ref</span> <span class='ident'>err</span>) <span class='op'>=&gt;</span> <span class='macro'>write</span><span class='macro'>!</span>(<span class='ident'>f</span>, <span class='string'>&quot;MpscSendBytes error: {}&quot;</span>, <span class='ident'>err</span>),
-            <span class='ident'>RedisError</span>::<span class='ident'>MpscSendCallback</span>(<span class='kw-2'>ref</span> <span class='ident'>err</span>) <span class='op'>=&gt;</span> <span class='macro'>write</span><span class='macro'>!</span>(<span class='ident'>f</span>, <span class='string'>&quot;MpscSendCallback error: {}&quot;</span>, <span class='ident'>err</span>),
+            <span class='ident'>RedisError</span>::<span class='ident'>MpscTryRecv</span>(<span class='kw-2'>ref</span> <span class='ident'>err</span>) <span class='op'>=&gt;</span> <span class='macro'>write</span><span class='macro'>!</span>(<span class='ident'>f</span>, <span class='string'>&quot;MpscTryRecv error: {}&quot;</span>, <span class='ident'>err</span>),
         }
     }
 }
@@ -251,7 +281,7 @@
             <span class='ident'>RedisError</span>::<span class='ident'>Response</span>(<span class='kw-2'>ref</span> <span class='ident'>err</span>) <span class='op'>=&gt;</span> <span class='ident'>err</span>,
             <span class='ident'>RedisError</span>::<span class='ident'>MpscRecv</span>(<span class='kw-2'>ref</span> <span class='ident'>err</span>) <span class='op'>=&gt;</span> <span class='ident'>err</span>.<span class='ident'>description</span>(),
             <span class='ident'>RedisError</span>::<span class='ident'>MpscSendBytes</span>(<span class='kw-2'>ref</span> <span class='ident'>err</span>) <span class='op'>=&gt;</span> <span class='ident'>err</span>.<span class='ident'>description</span>(),
-            <span class='ident'>RedisError</span>::<span class='ident'>MpscSendCallback</span>(<span class='kw-2'>ref</span> <span class='ident'>err</span>) <span class='op'>=&gt;</span> <span class='ident'>err</span>.<span class='ident'>description</span>(),
+            <span class='ident'>RedisError</span>::<span class='ident'>MpscTryRecv</span>(<span class='kw-2'>ref</span> <span class='ident'>err</span>) <span class='op'>=&gt;</span> <span class='ident'>err</span>.<span class='ident'>description</span>(),
         }
     }
 
@@ -264,7 +294,7 @@
             <span class='ident'>RedisError</span>::<span class='ident'>Response</span>(<span class='kw-2'>ref</span> <span class='ident'>_err</span>) <span class='op'>=&gt;</span> <span class='prelude-val'>Some</span>(<span class='self'>self</span>),
             <span class='ident'>RedisError</span>::<span class='ident'>MpscRecv</span>(<span class='kw-2'>ref</span> <span class='ident'>err</span>) <span class='op'>=&gt;</span> <span class='prelude-val'>Some</span>(<span class='ident'>err</span>),
             <span class='ident'>RedisError</span>::<span class='ident'>MpscSendBytes</span>(<span class='kw-2'>ref</span> <span class='ident'>err</span>) <span class='op'>=&gt;</span> <span class='prelude-val'>Some</span>(<span class='ident'>err</span>),
-            <span class='ident'>RedisError</span>::<span class='ident'>MpscSendCallback</span>(<span class='kw-2'>ref</span> <span class='ident'>err</span>) <span class='op'>=&gt;</span> <span class='prelude-val'>Some</span>(<span class='ident'>err</span>),
+            <span class='ident'>RedisError</span>::<span class='ident'>MpscTryRecv</span>(<span class='kw-2'>ref</span> <span class='ident'>err</span>) <span class='op'>=&gt;</span> <span class='prelude-val'>Some</span>(<span class='ident'>err</span>),
         }
     }
 }
@@ -305,15 +335,15 @@
     }
 }
 
-<span class='kw'>impl</span> <span class='ident'>From</span><span class='op'>&lt;</span><span class='ident'>mpsc</span>::<span class='ident'>SendError</span><span class='op'>&lt;</span><span class='ident'>Vec</span><span class='op'>&lt;</span><span class='ident'>u8</span><span class='op'>&gt;&gt;</span><span class='op'>&gt;</span> <span class='kw'>for</span> <span class='ident'>RedisError</span> {
-    <span class='kw'>fn</span> <span class='ident'>from</span>(<span class='ident'>err</span>: <span class='ident'>mpsc</span>::<span class='ident'>SendError</span><span class='op'>&lt;</span><span class='ident'>Vec</span><span class='op'>&lt;</span><span class='ident'>u8</span><span class='op'>&gt;&gt;</span>) <span class='op'>-&gt;</span> <span class='ident'>RedisError</span> {
+<span class='kw'>impl</span> <span class='ident'>From</span><span class='op'>&lt;</span><span class='ident'>mpsc</span>::<span class='ident'>SendError</span><span class='op'>&lt;</span>(<span class='ident'>u32</span>, <span class='ident'>Vec</span><span class='op'>&lt;</span><span class='ident'>u8</span><span class='op'>&gt;</span>)<span class='op'>&gt;&gt;</span> <span class='kw'>for</span> <span class='ident'>RedisError</span> {
+    <span class='kw'>fn</span> <span class='ident'>from</span>(<span class='ident'>err</span>: <span class='ident'>mpsc</span>::<span class='ident'>SendError</span><span class='op'>&lt;</span>(<span class='ident'>u32</span>, <span class='ident'>Vec</span><span class='op'>&lt;</span><span class='ident'>u8</span><span class='op'>&gt;</span>)<span class='op'>&gt;</span>) <span class='op'>-&gt;</span> <span class='ident'>RedisError</span> {
         <span class='ident'>RedisError</span>::<span class='ident'>MpscSendBytes</span>(<span class='ident'>err</span>)
     }
 }
 
-<span class='kw'>impl</span> <span class='ident'>From</span><span class='op'>&lt;</span><span class='ident'>mpsc</span>::<span class='ident'>SendError</span><span class='op'>&lt;</span><span class='ident'>Box</span><span class='op'>&lt;</span><span class='ident'>Fn</span>(<span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>RedisResult</span>, <span class='ident'>RedisError</span><span class='op'>&gt;</span>) <span class='op'>+</span> <span class='ident'>Send</span><span class='op'>&gt;&gt;</span><span class='op'>&gt;</span> <span class='kw'>for</span> <span class='ident'>RedisError</span> {
-    <span class='kw'>fn</span> <span class='ident'>from</span>(<span class='ident'>err</span>: <span class='ident'>mpsc</span>::<span class='ident'>SendError</span><span class='op'>&lt;</span><span class='ident'>Box</span><span class='op'>&lt;</span><span class='ident'>Fn</span>(<span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>RedisResult</span>, <span class='ident'>RedisError</span><span class='op'>&gt;</span>) <span class='op'>+</span> <span class='ident'>Send</span><span class='op'>&gt;&gt;</span>) <span class='op'>-&gt;</span> <span class='ident'>RedisError</span> {
-        <span class='ident'>RedisError</span>::<span class='ident'>MpscSendCallback</span>(<span class='ident'>err</span>)
+<span class='kw'>impl</span> <span class='ident'>From</span><span class='op'>&lt;</span><span class='ident'>mpsc</span>::<span class='ident'>TryRecvError</span><span class='op'>&gt;</span> <span class='kw'>for</span> <span class='ident'>RedisError</span> {
+    <span class='kw'>fn</span> <span class='ident'>from</span>(<span class='ident'>err</span>: <span class='ident'>mpsc</span>::<span class='ident'>TryRecvError</span>) <span class='op'>-&gt;</span> <span class='ident'>RedisError</span> {
+        <span class='ident'>RedisError</span>::<span class='ident'>MpscTryRecv</span>(<span class='ident'>err</span>)
     }
 }
 </pre>
