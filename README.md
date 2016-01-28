@@ -65,6 +65,22 @@ fn async_get() -> Result<(), RedisError> {
         println!("{:?}", result_value);
     }));
 
+     try!(async_client.get("key2", |result| {
+        let result_value: String  = match result {
+            Ok(value) => value.into(),
+            Err(err) => err.to_string(),
+        };
+        println!("{:?}", result_value);
+    }));
+
+    loop {
+
+        sleep(Duration::new(0, 1000 * 1000 * 1000));
+
+        // this method will call callback when their command executions are over.
+        async_client.pump();
+    }
+
     Ok(())
 }
 
