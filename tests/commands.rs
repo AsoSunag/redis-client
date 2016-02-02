@@ -71,6 +71,22 @@ fn bitcount_range_cmd_works() {
 }
 
 #[test]
+fn decr_cmd_works() {
+    let cmd = &mut RedisCommand::new();
+    cmd.decr("key");
+
+    check_result(cmd.into(), b"DECR key\r\n");
+}
+
+#[test]
+fn decrby_cmd_works() {
+    let cmd = &mut RedisCommand::new();
+    cmd.decrby("key", 42);
+
+    check_result(cmd.into(), b"DECRBY key 42\r\n");
+}
+
+#[test]
 fn del_cmd_works() {
     let cmd = &mut RedisCommand::new();
     cmd.del("key");
@@ -92,6 +108,14 @@ fn discard_cmd_works() {
     cmd.discard();
 
     check_result(cmd.into(), b"DISCARD\r\n");
+}
+
+#[test]
+fn echo_cmd_works() {
+    let cmd = &mut RedisCommand::new();
+    cmd.echo("hello");
+
+    check_result(cmd.into(), b"ECHO hello\r\n");
 }
 
 #[test]

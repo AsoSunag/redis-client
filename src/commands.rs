@@ -177,6 +177,17 @@ generate_command_traits!{
         add_arg(end_range);
     }
 
+    fn decr<K: ToString>(key: K) {
+        add_cmd("DECR");
+        add_arg(key);
+    }
+
+    fn decrby<K: ToString>(key: K, increment: i64) {
+        add_cmd("DECRBY");
+        add_arg(key);
+        add_arg(increment);
+    }
+
     fn del<K: ToString>(key: K) {
         add_cmd("DEL");
         add_arg(key);
@@ -189,6 +200,11 @@ generate_command_traits!{
 
     fn discard() {
         add_cmd("DISCARD");
+    }
+
+    fn echo<K: ToString>(msg: K) {
+        add_cmd("ECHO");
+        add_arg(msg);
     }
 
     fn exec() {
