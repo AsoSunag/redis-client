@@ -88,11 +88,11 @@ fn async_pipeline() -> Result<(), RedisError> {
     let mut async_client = try!(redis_client::RedisClientAsync::new("localhost", "6379"));
     let cmd = &mut redis_client::RedisCommand::new();
     cmd.set("key", "value2").get("key");
-    let results = try!(async_client.exec_redis_pipeline_command_async(cmd, |results| {
+    try!(async_client.exec_redis_pipeline_command_async(cmd, |results| {
         match results {
             Ok(values) => {
                 for value in values {
-                    println!("{:?}", value.to_string())
+                    println!("{:?}", value.convert::<String>())
                 }
             },
             Err(err) => println!("{:?}", err.to_string()),
