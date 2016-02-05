@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["commands",""],["errors",""],["reader",""],["redis",""],["results",""]]});
+initSidebarItems({"mod":[["commands",""],["errors",""],["reader",""],["redis",""],["results",""],["types",""]]});

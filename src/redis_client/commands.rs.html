@@ -674,6 +674,22 @@
 <span id="631">631</span>
 <span id="632">632</span>
 <span id="633">633</span>
+<span id="634">634</span>
+<span id="635">635</span>
+<span id="636">636</span>
+<span id="637">637</span>
+<span id="638">638</span>
+<span id="639">639</span>
+<span id="640">640</span>
+<span id="641">641</span>
+<span id="642">642</span>
+<span id="643">643</span>
+<span id="644">644</span>
+<span id="645">645</span>
+<span id="646">646</span>
+<span id="647">647</span>
+<span id="648">648</span>
+<span id="649">649</span>
 </pre><pre class='rust '>
 <span class='kw'>use</span> <span class='ident'>errors</span>::<span class='ident'>RedisError</span>;
 <span class='kw'>use</span> <span class='ident'>redis</span>::{<span class='ident'>RedisClient</span>, <span class='ident'>RedisClientAsync</span>};
@@ -854,6 +870,17 @@
         <span class='ident'>add_arg</span>(<span class='ident'>end_range</span>);
     }
 
+    <span class='kw'>fn</span> <span class='ident'>decr</span><span class='op'>&lt;</span><span class='ident'>K</span>: <span class='ident'>ToString</span><span class='op'>&gt;</span>(<span class='ident'>key</span>: <span class='ident'>K</span>) {
+        <span class='ident'>add_cmd</span>(<span class='string'>&quot;DECR&quot;</span>);
+        <span class='ident'>add_arg</span>(<span class='ident'>key</span>);
+    }
+
+    <span class='kw'>fn</span> <span class='ident'>decrby</span><span class='op'>&lt;</span><span class='ident'>K</span>: <span class='ident'>ToString</span><span class='op'>&gt;</span>(<span class='ident'>key</span>: <span class='ident'>K</span>, <span class='ident'>increment</span>: <span class='ident'>i64</span>) {
+        <span class='ident'>add_cmd</span>(<span class='string'>&quot;DECRBY&quot;</span>);
+        <span class='ident'>add_arg</span>(<span class='ident'>key</span>);
+        <span class='ident'>add_arg</span>(<span class='ident'>increment</span>);
+    }
+
     <span class='kw'>fn</span> <span class='ident'>del</span><span class='op'>&lt;</span><span class='ident'>K</span>: <span class='ident'>ToString</span><span class='op'>&gt;</span>(<span class='ident'>key</span>: <span class='ident'>K</span>) {
         <span class='ident'>add_cmd</span>(<span class='string'>&quot;DEL&quot;</span>);
         <span class='ident'>add_arg</span>(<span class='ident'>key</span>);
@@ -866,6 +893,11 @@
 
     <span class='kw'>fn</span> <span class='ident'>discard</span>() {
         <span class='ident'>add_cmd</span>(<span class='string'>&quot;DISCARD&quot;</span>);
+    }
+
+    <span class='kw'>fn</span> <span class='ident'>echo</span><span class='op'>&lt;</span><span class='ident'>K</span>: <span class='ident'>ToString</span><span class='op'>&gt;</span>(<span class='ident'>msg</span>: <span class='ident'>K</span>) {
+        <span class='ident'>add_cmd</span>(<span class='string'>&quot;ECHO&quot;</span>);
+        <span class='ident'>add_arg</span>(<span class='ident'>msg</span>);
     }
 
     <span class='kw'>fn</span> <span class='ident'>exec</span>() {
