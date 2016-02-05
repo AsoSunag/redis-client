@@ -13,6 +13,7 @@ use std::net::TcpStream;
 use std::sync::mpsc::*;
 use std::time::Duration;
 use std::thread;
+use types::SenderType;
 
 pub struct RedisClient {
     port: &'static str,
@@ -23,9 +24,11 @@ pub struct RedisClient {
 pub struct RedisClientAsync {
     port: &'static str,
     host: &'static str,
-    sender: Sender<(u32, Vec<u8>)>,
+    sender: Sender<(SenderType, u32, Vec<u8>)>,
     callbacks: HashMap<u32, Box<Fn(Result<RedisResult, RedisError>)>>,
-    receiver: Receiver<(u32, Result<RedisResult, RedisError>)>
+    receiver: Receiver<(u32, Result<RedisResult, RedisError>)>,
+    pipe_callbacks: HashMap<u32, Box<Fn(Result<Vec<RedisResult>, RedisError>)>>,
+    pipe_receiver: Receiver<(u32, Result<Vec<RedisResult>, RedisError>)>
 }
 
 impl RedisClient {
@@ -58,6 +61,13 @@ impl RedisClient {
         Reader::read(&mut self.buffer)
     }
 
+    /// Execute a pipeline command received as an array of bytes
+    fn exec_pipeline_command(&mut self, buf_to_send: &[u8], cmd_nb: usize) -> Result<Vec<RedisResult>, RedisError> {
+        try!(self.write_command(buf_to_send));
+
+        Reader::read_pipeline(&mut self.buffer, cmd_nb)
+    }
+
     /// Execute a RedisCommand
     pub fn exec_redis_command(&mut self, redis_command: &mut RedisCommand) -> Result<RedisResult, RedisError> {
         self.exec_command(redis_command.into())
@@ -65,9 +75,11 @@ impl RedisClient {
 
     /// Execute a pipeline of RedisCommand
     pub fn exec_redis_pipeline_command(&mut self, redis_command: &mut RedisCommand) -> Result<Vec<RedisResult>, RedisError> {
-        try!(self.write_command(redis_command.into()));
-
-        Reader::read_pipeline(&mut self.buffer, redis_command.get_command_nb())
+        let cmd_nb: usize;
+        {
+            cmd_nb = redis_command.get_command_nb();
+        }
+        self.exec_pipeline_command(redis_command.into(), cmd_nb)
     }
 
 }
@@ -86,9 +98,10 @@ impl fmt::Display for RedisClient {
 
 impl RedisClientAsync {
     pub fn new(host: &'static str, port: &'static str) -> Result<RedisClientAsync, RedisError> {
-        let (sender_tx, sender_rx) = channel::<(u32, Vec<u8>)>();
+        let (sender_tx, sender_rx) = channel::<(SenderType, u32, Vec<u8>)>();
         let (init_tx, init_rx) = channel::<Option<RedisError>>();
         let (receiver_tx, receiver_rx) = channel::<(u32, Result<RedisResult, RedisError>)>();
+        let (pipe_receiver_tx, pipe_receiver_rx) = channel::<(u32, Result<Vec<RedisResult>, RedisError>)>();
 
         thread::spawn(move || {
             let _client = RedisClient::new(host, port)
@@ -98,7 +111,14 @@ impl RedisClientAsync {
                     loop {
                         match sender_rx.recv() {
                             Ok(value) => {
-                                let _res = receiver_tx.send((value.0, redis_client.exec_command(&value.1[..])));
+                                match value.0 {
+                                    SenderType::Simple => {
+                                        let _res = receiver_tx.send((value.1, redis_client.exec_command(&value.2[..])));
+                                    },
+                                    SenderType::Pipe(cmd_nb) => {
+                                        let _res = pipe_receiver_tx.send((value.1, redis_client.exec_pipeline_command(&value.2[..], cmd_nb)));
+                                    },
+                                };
                             },
                             Err(_) => break,
                         };
@@ -117,7 +137,9 @@ impl RedisClientAsync {
                     host: host,
                     sender: sender_tx,
                     receiver: receiver_rx,
-                    callbacks: HashMap::new()
+                    callbacks: HashMap::new(),
+                    pipe_receiver: pipe_receiver_rx,
+                    pipe_callbacks: HashMap::new()
                 })
             },
             Ok(Some(err)) =>  Err(err),
@@ -125,14 +147,26 @@ impl RedisClientAsync {
         }
     }
 
-    /// Execute a redis command and. The callback will be done when the command is executed and the pump method is called.
+    /// Execute a redis pipeline command. The callback will be done when the command is executed and the pump method is called.
+    /// The return value indicates if the command was successfully launched.
+    pub fn exec_redis_pipeline_command_async<F>(&mut self, redis_command: &mut RedisCommand, callback: F) 
+        -> Result<(), RedisError> where F: Fn(Result<Vec<RedisResult>, RedisError>), F: Send + 'static
+    {
+        let mut rng = rand::thread_rng();
+        let key = rng.gen::<u32>();
+        try!(self.sender.send((SenderType::Pipe(redis_command.get_command_nb()), key, redis_command.into())));
+        self.pipe_callbacks.insert(key, Box::new(callback));
+        Ok(())
+    }
+
+    /// Execute a redis command. The callback will be done when the command is executed and the pump method is called.
     /// The return value indicates if the command was successfully launched.
     pub fn exec_redis_command_async<F>(&mut self, redis_command: &mut RedisCommand, callback: F) 
         -> Result<(), RedisError> where F: Fn(Result<RedisResult, RedisError>), F: Send + 'static
     {
         let mut rng = rand::thread_rng();
         let key = rng.gen::<u32>();
-        try!(self.sender.send((key, redis_command.into())));
+        try!(self.sender.send((SenderType::Simple, key, redis_command.into())));
         self.callbacks.insert(key, Box::new(callback));
         Ok(())
     }
@@ -150,7 +184,21 @@ impl RedisClientAsync {
                             }
                         });
                 },
-                Err(TryRecvError::Empty) => return Ok(()),
+                Err(TryRecvError::Empty) => {
+                    match self.pipe_receiver.try_recv() {
+                        Ok(result) => {
+                            self.pipe_callbacks.remove(&result.0) 
+                                .map(|callback| {
+                                    if result.1.is_ok() {
+
+                                        callback(result.1.clone());
+                                    }
+                                });
+                        },
+                        Err(TryRecvError::Empty) => return Ok(()),
+                        Err(err) => return Err(RedisError::MpscTryRecv(err))
+                    };
+                },
                 Err(err) => return Err(RedisError::MpscTryRecv(err))
             };
         }

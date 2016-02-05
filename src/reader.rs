@@ -1,5 +1,4 @@
-use errors::ParsingError;
-use errors::RedisError;
+use errors::{ParsingError, RedisError};
 use results::RedisResult;
 use std::io::BufReader;
 use std::io::prelude::*;

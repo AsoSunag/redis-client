@@ -8,3 +8,4 @@ pub mod errors;
 pub mod reader;
 pub mod redis;
 pub mod results;
+pub mod types;
