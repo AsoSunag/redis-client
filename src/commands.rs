@@ -177,6 +177,37 @@ generate_command_traits!{
         add_arg(end_range);
     }
 
+    fn blpop<K: ToString>(key: K, timeout: u32) {
+        add_cmd("BLPOP");
+        add_arg(key);
+        add_arg(timeout);
+    }
+
+    fn mblpop<K: ToString>(keys: Vec<K>, timeout: u32) {
+        add_cmd("BLPOP");
+        add_args(keys);
+        add_arg(timeout);
+    }
+
+    fn brpop<K: ToString>(key: K, timeout: u32) {
+        add_cmd("BRPOP");
+        add_arg(key);
+        add_arg(timeout);
+    }
+
+    fn mbrpop<K: ToString>(keys: Vec<K>, timeout: u32) {
+        add_cmd("BRPOP");
+        add_args(keys);
+        add_arg(timeout);
+    }
+
+    fn brpoplpush<S: ToString, D: ToString>(source: S, dest: D, timeout: u32) {
+        add_cmd("BRPOPLPUSH");
+        add_arg(source);
+        add_arg(dest);
+        add_arg(timeout);
+    }
+
     fn decr<K: ToString>(key: K) {
         add_cmd("DECR");
         add_arg(key);
@@ -341,6 +372,22 @@ generate_command_traits!{
         add_arg(index);
     }
 
+    fn linsert_after<K: ToString, P: ToString, V: ToString>(key: K, pivot: P, value: V) {
+        add_cmd("LINSERT");
+        add_arg(key);
+        add_arg("AFTER");
+        add_arg(pivot);
+        add_arg(value);
+    }
+
+    fn linsert_before<K: ToString, P: ToString, V: ToString>(key: K, pivot: P, value: V) {
+        add_cmd("LINSERT");
+        add_arg(key);
+        add_arg("BEFORE");
+        add_arg(pivot);
+        add_arg(value);
+    }
+
     fn llen<K: ToString>(key: K) {
         add_cmd("LLEN");
         add_arg(key);
@@ -390,6 +437,13 @@ generate_command_traits!{
         add_arg(value);
     }
 
+    fn ltrim<K: ToString>(key: K, start: i32, end: i32) {
+        add_cmd("LTRIM");
+        add_arg(key);
+        add_arg(start);
+        add_arg(end);
+    }
+
     fn multi() {
         add_cmd("MULTI");
     }
@@ -409,6 +463,12 @@ generate_command_traits!{
     fn rpop<K: ToString>(key: K) {
         add_cmd("RPOP");
         add_arg(key);
+    }
+
+    fn rpoplpush<S: ToString, D: ToString>(source: S, dest: D) {
+        add_cmd("RPOPLPUSH");
+        add_arg(source);
+        add_arg(dest);
     }
 
     fn rpush<K: ToString, V: ToString>(key: K, value: V) {

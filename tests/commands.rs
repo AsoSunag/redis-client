@@ -71,6 +71,46 @@ fn bitcount_range_cmd_works() {
 }
 
 #[test]
+fn blpop_cmd_works() {
+    let cmd = &mut RedisCommand::new();
+    cmd.blpop("key", 10);
+
+    check_result(cmd.into(), b"BLPOP key 10\r\n");
+}
+
+#[test]
+fn mblpop_cmd_works() {
+    let cmd = &mut RedisCommand::new();
+    cmd.mblpop(vec!["key1", "key2"], 10);
+
+    check_result(cmd.into(), b"BLPOP key1 key2 10\r\n");
+}
+
+#[test]
+fn brpop_cmd_works() {
+    let cmd = &mut RedisCommand::new();
+    cmd.brpop("key", 10);
+
+    check_result(cmd.into(), b"BRPOP key 10\r\n");
+}
+
+#[test]
+fn mbrpop_cmd_works() {
+    let cmd = &mut RedisCommand::new();
+    cmd.mbrpop(vec!["key1", "key2"], 10);
+
+    check_result(cmd.into(), b"BRPOP key1 key2 10\r\n");
+}
+
+#[test]
+fn brpoplpush_cmd_works() {
+    let cmd = &mut RedisCommand::new();
+    cmd.brpoplpush("source", "dest", 10);
+
+    check_result(cmd.into(), b"BRPOPLPUSH source dest 10\r\n");
+}
+
+#[test]
 fn decr_cmd_works() {
     let cmd = &mut RedisCommand::new();
     cmd.decr("key");
@@ -307,6 +347,22 @@ fn lindex_cmd_works() {
 }
 
 #[test]
+fn linsert_after_cmd_works() {
+    let cmd = &mut RedisCommand::new();
+    cmd.linsert_after("key", "pivot", "value");
+
+    check_result(cmd.into(), b"LINSERT key AFTER pivot value\r\n");
+}
+
+#[test]
+fn linsert_before_cmd_works() {
+    let cmd = &mut RedisCommand::new();
+    cmd.linsert_before("key", "pivot", "value");
+
+    check_result(cmd.into(), b"LINSERT key BEFORE pivot value\r\n");
+}
+
+#[test]
 fn llen_cmd_works() {
     let cmd = &mut RedisCommand::new();
     cmd.llen("key");
@@ -371,6 +427,14 @@ fn lset_cmd_works() {
 }
 
 #[test]
+fn ltrim_cmd_works() {
+    let cmd = &mut RedisCommand::new();
+    cmd.ltrim("key", 1, -1);
+
+    check_result(cmd.into(), b"LTRIM key 1 -1\r\n");
+}
+
+#[test]
 fn multi_cmd_works() {
     let cmd = &mut RedisCommand::new();
     cmd.multi();
@@ -400,6 +464,14 @@ fn rpop_cmd_works() {
     cmd.rpop("key");
 
     check_result(cmd.into(), b"RPOP key\r\n");
+}
+
+#[test]
+fn rpoplpush_cmd_works() {
+    let cmd = &mut RedisCommand::new();
+    cmd.rpoplpush("key", "value");
+
+    check_result(cmd.into(), b"RPOPLPUSH key value\r\n");
 }
 
 #[test]
