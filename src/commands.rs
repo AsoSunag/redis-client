@@ -335,6 +335,61 @@ generate_command_traits!{
         add_arg(key);
     }
 
+    fn lindex<K: ToString>(key: K, index: i32) {
+        add_cmd("LINDEX");
+        add_arg(key);
+        add_arg(index);
+    }
+
+    fn llen<K: ToString>(key: K) {
+        add_cmd("LLEN");
+        add_arg(key);
+    }
+
+    fn lpop<K: ToString>(key: K) {
+        add_cmd("LPOP");
+        add_arg(key);
+    }
+
+    fn lpush<K: ToString, V: ToString>(key: K, value: V) {
+        add_cmd("LPUSH");
+        add_arg(key);
+        add_arg(value);
+    }
+
+    fn mlpush<K: ToString, V: ToString>(key: K, values: Vec<V>) {
+        add_cmd("LPUSH");
+        add_arg(key);
+        add_args(values);
+    }
+
+    fn lpushx<K: ToString, V: ToString>(key: K, value: V) {
+        add_cmd("LPUSHX");
+        add_arg(key);
+        add_arg(value);
+    }
+
+    fn lrange<K: ToString>(key: K, start: i32, end: i32) {
+        add_cmd("LRANGE");
+        add_arg(key);
+        add_arg(start);
+        add_arg(end);
+    }
+
+    fn lrem<K: ToString, V: ToString>(key: K, count: i32, value: V) {
+        add_cmd("LREM");
+        add_arg(key);
+        add_arg(count);
+        add_arg(value);
+    }
+
+    fn lset<K: ToString, V: ToString>(key: K, index: i32, value: V) {
+        add_cmd("LSET");
+        add_arg(key);
+        add_arg(index);
+        add_arg(value);
+    }
+
     fn multi() {
         add_cmd("MULTI");
     }
@@ -349,6 +404,29 @@ generate_command_traits!{
         add_cmd("RENAMENX");
         add_arg(key);
         add_arg(new_key);
+    }
+
+    fn rpop<K: ToString>(key: K) {
+        add_cmd("RPOP");
+        add_arg(key);
+    }
+
+    fn rpush<K: ToString, V: ToString>(key: K, value: V) {
+        add_cmd("RPUSH");
+        add_arg(key);
+        add_arg(value);
+    }
+
+    fn mrpush<K: ToString, V: ToString>(key: K, values: Vec<V>) {
+        add_cmd("RPUSH");
+        add_arg(key);
+        add_args(values);
+    }
+
+    fn rpushx<K: ToString, V: ToString>(key: K, value: V) {
+        add_cmd("RPUSHX");
+        add_arg(key);
+        add_arg(value);
     }
 
     fn sadd<K: ToString, M: ToString>(key: K, member: M) {

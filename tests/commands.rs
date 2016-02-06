@@ -299,6 +299,78 @@ fn hvals_cmd_works() {
 }
 
 #[test]
+fn lindex_cmd_works() {
+    let cmd = &mut RedisCommand::new();
+    cmd.lindex("key", 2);
+
+    check_result(cmd.into(), b"LINDEX key 2\r\n");
+}
+
+#[test]
+fn llen_cmd_works() {
+    let cmd = &mut RedisCommand::new();
+    cmd.llen("key");
+
+    check_result(cmd.into(), b"LLEN key\r\n");
+}
+
+#[test]
+fn lpop_cmd_works() {
+    let cmd = &mut RedisCommand::new();
+    cmd.lpop("key");
+
+    check_result(cmd.into(), b"LPOP key\r\n");
+}
+
+#[test]
+fn lpush_cmd_works() {
+    let cmd = &mut RedisCommand::new();
+    cmd.lpush("key", "value");
+
+    check_result(cmd.into(), b"LPUSH key value\r\n");
+}
+
+#[test]
+fn mlpush_cmd_works() {
+    let cmd = &mut RedisCommand::new();
+    cmd.mlpush("key", vec!["value1", "value2"]);
+
+    check_result(cmd.into(), b"LPUSH key value1 value2\r\n");
+}
+
+#[test]
+fn lpushx_cmd_works() {
+    let cmd = &mut RedisCommand::new();
+    cmd.lpushx("key", "value");
+
+    check_result(cmd.into(), b"LPUSHX key value\r\n");
+}
+
+#[test]
+fn lrange_cmd_works() {
+    let cmd = &mut RedisCommand::new();
+    cmd.lrange("key", 1, -1);
+
+    check_result(cmd.into(), b"LRANGE key 1 -1\r\n");
+}
+
+#[test]
+fn lrem_cmd_works() {
+    let cmd = &mut RedisCommand::new();
+    cmd.lrem("key", 1, "value");
+
+    check_result(cmd.into(), b"LREM key 1 value\r\n");
+}
+
+#[test]
+fn lset_cmd_works() {
+    let cmd = &mut RedisCommand::new();
+    cmd.lset("key", 1, "value");
+
+    check_result(cmd.into(), b"LSET key 1 value\r\n");
+}
+
+#[test]
 fn multi_cmd_works() {
     let cmd = &mut RedisCommand::new();
     cmd.multi();
@@ -320,6 +392,38 @@ fn renamenx_cmd_works() {
     cmd.renamenx("key", "new_key");
 
     check_result(cmd.into(), b"RENAMENX key new_key\r\n");
+}
+
+#[test]
+fn rpop_cmd_works() {
+    let cmd = &mut RedisCommand::new();
+    cmd.rpop("key");
+
+    check_result(cmd.into(), b"RPOP key\r\n");
+}
+
+#[test]
+fn rpush_cmd_works() {
+    let cmd = &mut RedisCommand::new();
+    cmd.rpush("key", "value");
+
+    check_result(cmd.into(), b"RPUSH key value\r\n");
+}
+
+#[test]
+fn mrpush_cmd_works() {
+    let cmd = &mut RedisCommand::new();
+    cmd.mrpush("key", vec!["value1", "value2"]);
+
+    check_result(cmd.into(), b"RPUSH key value1 value2\r\n");
+}
+
+#[test]
+fn rpushx_cmd_works() {
+    let cmd = &mut RedisCommand::new();
+    cmd.rpushx("key", "value");
+
+    check_result(cmd.into(), b"RPUSHX key value\r\n");
 }
 
 #[test]
