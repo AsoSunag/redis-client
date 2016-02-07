@@ -31,6 +31,19 @@ pub struct RedisClientAsync {
     pipe_receiver: Receiver<(u32, Result<Vec<RedisResult>, RedisError>)>
 }
 
+/// A RedisClient is a structure to send command to redis and receive the response.
+/// All RedisClient's methods are performed synchronously.
+/// 
+/// When creating a RedisClient it will automatically create a connection. Therefore when
+/// it is created it uses the host and the port.
+///
+/// Example:
+///
+/// ```
+/// # fn function() -> Result<(), redis_client::errors::RedisError> {
+/// let mut client = try!(redis_client::RedisClient::new("127.0.0.1", "6379"));
+/// # Ok(())}
+/// ```
 impl RedisClient {
     pub fn new(host: &'static str, port: &'static str) -> Result<RedisClient, RedisError> {
         TcpStream::connect(&*format!("{}:{}", host, port))
@@ -96,6 +109,18 @@ impl fmt::Display for RedisClient {
     }
 }
 
+/// A RedisClientAsync is a structure to send command to redis and receive the response asynchronously.
+/// 
+/// When creating a RedisClientAsync it will automatically create a connection. Therefore when
+/// it is created it uses the host and the port.
+///
+/// Example:
+///
+/// ```
+/// # fn function() -> Result<(), redis_client::errors::RedisError> {
+/// let mut client = try!(redis_client::RedisClientAsync::new("127.0.0.1", "6379"));
+/// # Ok(())}
+/// ```
 impl RedisClientAsync {
     pub fn new(host: &'static str, port: &'static str) -> Result<RedisClientAsync, RedisError> {
         let (sender_tx, sender_rx) = channel::<(SenderType, u32, Vec<u8>)>();
@@ -147,7 +172,7 @@ impl RedisClientAsync {
         }
     }
 
-    /// Execute a redis pipeline command. The callback will be done when the command is executed and the pump method is called.
+    /// Execute a redis pipeline command. The callback will be called once the command execution is over and the pump method is called.
     /// The return value indicates if the command was successfully launched.
     pub fn exec_redis_pipeline_command_async<F>(&mut self, redis_command: &mut RedisCommand, callback: F) 
         -> Result<(), RedisError> where F: Fn(Result<Vec<RedisResult>, RedisError>), F: Send + 'static
@@ -159,7 +184,7 @@ impl RedisClientAsync {
         Ok(())
     }
 
-    /// Execute a redis command. The callback will be done when the command is executed and the pump method is called.
+    /// Execute a redis command. The callback will be called once the command execution is over and the pump method is called.
     /// The return value indicates if the command was successfully launched.
     pub fn exec_redis_command_async<F>(&mut self, redis_command: &mut RedisCommand, callback: F) 
         -> Result<(), RedisError> where F: Fn(Result<RedisResult, RedisError>), F: Send + 'static

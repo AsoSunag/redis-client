@@ -4,6 +4,8 @@ use std::io::BufReader;
 use std::io::prelude::*;
 use std::net::TcpStream;
 
+/// Reads the TcpStream buffer and parse the result according to the redis protocol specification 
+/// building either RedisResult or RedisError.
 pub struct Reader;
 
 impl Reader {

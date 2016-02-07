@@ -12,6 +12,7 @@ pub enum RedisResult {
 }
 
 impl RedisResult {
+    /// Method to convert a RedisResult into another type
     pub fn convert<T: From<RedisResult>>(self) -> T {
         self.into()
     }

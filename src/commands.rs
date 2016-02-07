@@ -3,6 +3,23 @@ use redis::{RedisClient, RedisClientAsync};
 use results::RedisResult;
 use std::collections::HashMap;
 
+/// A RedisCommand purpose is to build redis commands.
+/// It can contains one or more commands for pipelining
+///
+/// Example:
+///
+/// ```
+/// # use redis_client::commands::CommandBuilder;
+/// let cmd = &mut redis_client::RedisCommand::new();
+/// cmd.set("key", "value2").get("key");
+/// ```
+///
+/// or its equivalent:
+///
+/// ```
+/// let cmd = &mut redis_client::RedisCommand::new();
+/// cmd.add_cmd("SET").add_arg("key").add_arg("value2").end().add_cmd("GET").add_arg("key").end();
+/// ```
 pub struct RedisCommand {
     cmd: Vec<u8>,
     cmd_nb: usize,
@@ -89,6 +106,22 @@ macro_rules! generate_command_traits {
     )*)
     => 
     (
+        /// The trait CommandBuilder implements methods to abstract the construction of redis commands.
+        ///
+        /// So we can use:
+        ///
+        /// ```
+        /// # use redis_client::commands::CommandBuilder;
+        /// let cmd = &mut redis_client::RedisCommand::new();
+        /// cmd.set("key", "value2");
+        /// ```
+        ///
+        /// Instead of:
+        ///
+        /// ```
+        /// let cmd = &mut redis_client::RedisCommand::new();
+        /// cmd.add_cmd("SET").add_arg("key").add_arg("value2").end();
+        /// ```
         pub trait CommandBuilder {
             $(
                 fn $func_name$(<$($gen_id : $gen_type),*>)* (&mut self $(,$arg_name: $arg_type)*) -> &mut RedisCommand;
@@ -104,6 +137,24 @@ macro_rules! generate_command_traits {
             )*
         }
 
+        /// The trait CommandSender implements methods to send redis commands and receive the response synchronously.
+        ///
+        /// Each methods returns a:
+        ///
+        /// ```plain
+        /// Result<R: From<RedisResult>, RedisError>
+        /// ```
+        /// 
+        /// It means that when calling a method from this trait you need to specify the type you want R to be.
+        /// For example:
+        ///
+        /// ```no_run
+        /// # use redis_client::commands::CommandSender;
+        /// # fn function() -> Result<(), redis_client::errors::RedisError> {
+        /// # let mut client = redis_client::redis::RedisClient::new("127.0.0.1", "6379").unwrap();
+        /// let result: String = try!(client.set("key", "value"));
+        /// # Ok(())}
+        /// ```
         pub trait CommandSender {
             $(
                 fn $func_name<R: From<RedisResult>, $($($gen_id : $gen_type),*)*> (&mut self $(,$arg_name: $arg_type)*) -> Result<R, RedisError>;
@@ -122,6 +173,25 @@ macro_rules! generate_command_traits {
             )*
         }
 
+        /// The trait CommandSenderAsync implements methods to send redis commands and receive the response asynchronously.
+        ///
+        /// Each methods returns a:
+        ///
+        /// ```plain
+        /// Result<(), RedisError>
+        /// ```
+        /// 
+        /// It means that when calling a method from this trait if the Result is an error, the command execution failed to start.
+        /// Otherwise it means that the command execution was successfully launched.
+        /// 
+        /// Each method will contained a callback argument:
+        ///
+        /// ```plain
+        /// Fn(Result<RedisResult, RedisError>)
+        /// ```
+        /// Once the command execution is over, it will be called once the pump method is called.
+        /// 
+        /// All commands execution are made in a background thread. 
         pub trait CommandSenderAsync {
             $(
                 fn $func_name<G: Fn(Result<RedisResult, RedisError>), $($($gen_id : $gen_type),*)*> (&mut self $(,$arg_name: $arg_type)*, callback: G) 
