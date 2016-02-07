@@ -46,14 +46,16 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-8' class='srclink' href='../../src/redis_client/commands.rs.html#1-648' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-8' class='srclink' href='../../src/redis_client/commands.rs.html#1-856' title='goto source code'>[src]</a></span></h1>
 <h2 id='structs' class='section-header'><a href="#structs">Structs</a></h2>
 <table>
                     <tr class=' module-item'>
                         <td><a class='struct' href='struct.RedisCommand.html'
                                title='redis_client::commands::RedisCommand'>RedisCommand</a></td>
                         <td class='docblock short'>
-                             
+                             <p>A RedisCommand purpose is to build redis commands.
+It can contains one or more commands for pipelining</p>
+
                         </td>
                     </tr>
                 </table><h2 id='traits' class='section-header'><a href="#traits">Traits</a></h2>
@@ -62,7 +64,8 @@
                         <td><a class='trait' href='trait.CommandBuilder.html'
                                title='redis_client::commands::CommandBuilder'>CommandBuilder</a></td>
                         <td class='docblock short'>
-                             
+                             <p>The trait CommandBuilder implements methods to abstract the construction of redis commands.</p>
+
                         </td>
                     </tr>
                 
@@ -70,7 +73,8 @@
                         <td><a class='trait' href='trait.CommandSender.html'
                                title='redis_client::commands::CommandSender'>CommandSender</a></td>
                         <td class='docblock short'>
-                             
+                             <p>The trait CommandSender implements methods to send redis commands and receive the response synchronously.</p>
+
                         </td>
                     </tr>
                 
@@ -78,7 +82,8 @@
                         <td><a class='trait' href='trait.CommandSenderAsync.html'
                                title='redis_client::commands::CommandSenderAsync'>CommandSenderAsync</a></td>
                         <td class='docblock short'>
-                             
+                             <p>The trait CommandSenderAsync implements methods to send redis commands and receive the response asynchronously.</p>
+
                         </td>
                     </tr>
                 </table></section>

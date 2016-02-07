@@ -46,8 +46,138 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-0' class='srclink' href='../src/redis_client/lib.rs.html#1-11' title='goto source code'>[src]</a></span></h1>
-<h2 id='reexports' class='section-header'><a href="#reexports">Reexports</a></h2>
+        </span><a id='src-0' class='srclink' href='../src/redis_client/lib.rs.html#1-202' title='goto source code'>[src]</a></span></h1>
+<div class='docblock'><p>A redis client implemented in Rust. It&#39;s create is called &quot;redis-client&quot;.</p>
+
+<h1 id='connection' class='section-header'><a href='#connection'>Connection</a></h1>
+<p>Every clients are created with a host and a port:</p>
+
+<pre><code class="language-plain">try!(client::new(&quot;127.0.0.1&quot;, &quot;6379&quot;));
+</code></pre>
+
+<p>They are trying to connect when they are created and the new method return a Result with either the client or a RedisError.</p>
+
+<h1 id='the-clients' class='section-header'><a href='#the-clients'>The clients</a></h1>
+<p>There is more than one client in the library.</p>
+
+<h2 id='redisclient' class='section-header'><a href='#redisclient'>RedisClient</a></h2>
+<p>It is used to execute redis commands synchronously.</p>
+
+<p>For example:</p>
+<pre class='rust rust-example-rendered'>
+<span class='kw'>let</span> <span class='ident'>result</span>: <span class='ident'>String</span> <span class='op'>=</span> <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>client</span>.<span class='ident'>set</span>(<span class='string'>&quot;key&quot;</span>, <span class='string'>&quot;value&quot;</span>));</pre>
+
+<h2 id='redisclientasync' class='section-header'><a href='#redisclientasync'>RedisClientAsync</a></h2>
+<p>It is used to execute redis commands synchronously.</p>
+
+<p>For example:</p>
+<pre class='rust rust-example-rendered'>
+<span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>async_client</span>.<span class='ident'>get</span>(<span class='string'>&quot;key&quot;</span>, <span class='op'>|</span><span class='ident'>result</span><span class='op'>|</span> {
+   <span class='kw'>let</span> <span class='ident'>result_value</span>: <span class='ident'>String</span>  <span class='op'>=</span> <span class='kw'>match</span> <span class='ident'>result</span> {
+       <span class='prelude-val'>Ok</span>(<span class='ident'>value</span>) <span class='op'>=&gt;</span> <span class='ident'>value</span>.<span class='ident'>into</span>(),
+       <span class='prelude-val'>Err</span>(<span class='ident'>err</span>) <span class='op'>=&gt;</span> <span class='ident'>err</span>.<span class='ident'>to_string</span>(),
+   };
+   <span class='macro'>println</span><span class='macro'>!</span>(<span class='string'>&quot;{:?}&quot;</span>, <span class='ident'>result_value</span>);
+}));</pre>
+
+<p>To get the callback to be called once the command execution is over, the pump method needs to be called.</p>
+
+<h1 id='commands' class='section-header'><a href='#commands'>Commands</a></h1>
+<h2 id='built-in-commands' class='section-header'><a href='#built-in-commands'>Built-in Commands</a></h2>
+<p>They are the redis commands implemented in the traits CommandBuilder to build a RedisCommand, or in CommandSender and CommandSenderAsync to send them.</p>
+
+<p>For example:</p>
+<pre class='rust rust-example-rendered'>
+<span class='kw'>let</span> <span class='ident'>cmd</span> <span class='op'>=</span> <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>redis_client</span>::<span class='ident'>RedisCommand</span>::<span class='ident'>new</span>();
+<span class='ident'>cmd</span>.<span class='ident'>get</span>(<span class='string'>&quot;key&quot;</span>);
+ 
+<span class='kw'>let</span> <span class='ident'>result</span>: <span class='ident'>String</span> <span class='op'>=</span> <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>client</span>.<span class='ident'>exec_redis_command</span>(<span class='ident'>cmd</span>)).<span class='ident'>into</span>();
+ 
+<span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>async_client</span>.<span class='ident'>exec_redis_command_async</span>(<span class='ident'>cmd</span>, <span class='op'>|</span><span class='ident'>result</span><span class='op'>|</span> {
+   <span class='kw'>let</span> <span class='ident'>result_value</span>: <span class='ident'>String</span>  <span class='op'>=</span> <span class='kw'>match</span> <span class='ident'>result</span> {
+       <span class='prelude-val'>Ok</span>(<span class='ident'>value</span>) <span class='op'>=&gt;</span> <span class='ident'>value</span>.<span class='ident'>into</span>(),
+       <span class='prelude-val'>Err</span>(<span class='ident'>err</span>) <span class='op'>=&gt;</span> <span class='ident'>err</span>.<span class='ident'>to_string</span>(),
+   };
+   <span class='macro'>println</span><span class='macro'>!</span>(<span class='string'>&quot;{:?}&quot;</span>, <span class='ident'>result_value</span>);
+}));</pre>
+
+<p>Is the same as:</p>
+<pre class='rust rust-example-rendered'>
+<span class='kw'>let</span> <span class='ident'>result</span>: <span class='ident'>String</span> <span class='op'>=</span> <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>client</span>.<span class='ident'>get</span>(<span class='string'>&quot;key&quot;</span>));
+ 
+<span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>async_client</span>.<span class='ident'>get</span>(<span class='string'>&quot;key&quot;</span>, <span class='op'>|</span><span class='ident'>result</span><span class='op'>|</span> {
+   <span class='kw'>let</span> <span class='ident'>result_value</span>: <span class='ident'>String</span>  <span class='op'>=</span> <span class='kw'>match</span> <span class='ident'>result</span> {
+       <span class='prelude-val'>Ok</span>(<span class='ident'>value</span>) <span class='op'>=&gt;</span> <span class='ident'>value</span>.<span class='ident'>into</span>(),
+       <span class='prelude-val'>Err</span>(<span class='ident'>err</span>) <span class='op'>=&gt;</span> <span class='ident'>err</span>.<span class='ident'>to_string</span>(),
+   };
+   <span class='macro'>println</span><span class='macro'>!</span>(<span class='string'>&quot;{:?}&quot;</span>, <span class='ident'>result_value</span>);
+}));</pre>
+
+<p>Some redis commands can have an argument with one or more values. For these ones the rules is to implement two built-in commands, 
+one for the single value case that have the name of the redis commands and another for the multiple values case with the same name but 
+prefixed by a m.</p>
+
+<p>For example:</p>
+<pre class='rust rust-example-rendered'>
+<span class='kw'>let</span> <span class='ident'>result</span>: <span class='ident'>String</span> <span class='op'>=</span> <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>client</span>.<span class='ident'>del</span>(<span class='string'>&quot;key&quot;</span>));
+ 
+<span class='kw'>let</span> <span class='ident'>mresult</span>: <span class='ident'>String</span> <span class='op'>=</span> <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>client</span>.<span class='ident'>mdel</span>(<span class='macro'>vec</span><span class='macro'>!</span>[<span class='string'>&quot;key1&quot;</span>, <span class='string'>&quot;key2&quot;</span>]));</pre>
+
+<p>Another rule is when a redis commands has behavioral arguments, extra built-in commands are created.
+For example:</p>
+<pre class='rust rust-example-rendered'>
+<span class='kw'>let</span> <span class='ident'>result</span>: <span class='ident'>String</span> <span class='op'>=</span> <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>client</span>.<span class='ident'>setxx</span>(<span class='string'>&quot;key&quot;</span>, <span class='string'>&quot;value&quot;</span>)); <span class='comment'>// SET command with the XX argument</span></pre>
+
+<p>In the case a behavioral argument is mandatory, only the built-in commands with the arguments are created.
+For example lindex has an argument that is either AFTER or BEFORE:</p>
+<pre class='rust rust-example-rendered'>
+<span class='kw'>let</span> <span class='ident'>aresult</span>: <span class='ident'>String</span> <span class='op'>=</span> <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>client</span>.<span class='ident'>linsert_after</span>(<span class='string'>&quot;key&quot;</span>, <span class='string'>&quot;pivot&quot;</span>, <span class='string'>&quot;value&quot;</span>)); <span class='comment'>// LINSERT with AFTER has an argument</span>
+<span class='kw'>let</span> <span class='ident'>bresult</span>: <span class='ident'>String</span> <span class='op'>=</span> <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>client</span>.<span class='ident'>linsert_before</span>(<span class='string'>&quot;key&quot;</span>, <span class='string'>&quot;pivot&quot;</span>, <span class='string'>&quot;value&quot;</span>)); <span class='comment'>// LINSERT  with BEFORE has an argument</span>
+<span class='comment'>// let eresult: String = try!(client.linsert(&quot;key&quot;, &quot;pivot&quot;, &quot;value&quot;)); DOES NOT EXIST</span></pre>
+
+<h2 id='custom-commands' class='section-header'><a href='#custom-commands'>Custom Commands</a></h2>
+<p>It is also possible to build custom command and execute them.</p>
+
+<p>For example:</p>
+<pre class='rust rust-example-rendered'>
+<span class='kw'>let</span> <span class='ident'>cmd</span> <span class='op'>=</span> <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>redis_client</span>::<span class='ident'>RedisCommand</span>::<span class='ident'>new</span>();
+<span class='ident'>cmd</span>.<span class='ident'>add_cmd</span>(<span class='string'>&quot;GET&quot;</span>).<span class='ident'>add_arg</span>(<span class='string'>&quot;key&quot;</span>).<span class='ident'>end</span>();
+ 
+<span class='kw'>let</span> <span class='ident'>result</span>: <span class='ident'>String</span> <span class='op'>=</span> <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>client</span>.<span class='ident'>exec_redis_command</span>(<span class='ident'>cmd</span>)).<span class='ident'>into</span>();
+ 
+<span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>async_client</span>.<span class='ident'>exec_redis_command_async</span>(<span class='ident'>cmd</span>, <span class='op'>|</span><span class='ident'>result</span><span class='op'>|</span> {
+   <span class='kw'>let</span> <span class='ident'>result_value</span>: <span class='ident'>String</span>  <span class='op'>=</span> <span class='kw'>match</span> <span class='ident'>result</span> {
+       <span class='prelude-val'>Ok</span>(<span class='ident'>value</span>) <span class='op'>=&gt;</span> <span class='ident'>value</span>.<span class='ident'>into</span>(),
+       <span class='prelude-val'>Err</span>(<span class='ident'>err</span>) <span class='op'>=&gt;</span> <span class='ident'>err</span>.<span class='ident'>to_string</span>(),
+   };
+   <span class='macro'>println</span><span class='macro'>!</span>(<span class='string'>&quot;{:?}&quot;</span>, <span class='ident'>result_value</span>);
+}));</pre>
+
+<h1 id='pipeline' class='section-header'><a href='#pipeline'>Pipeline</a></h1>
+<p>To execute a command pipeline you simply need to create a RedisCommand with one or more redis commands and execute it with a client&#39;s pipeline method.
+The only difference with the execution of a single command is that the Result contains a vector of RedisResult instead of just a RedisResult.</p>
+
+<p>Example:</p>
+<pre class='rust rust-example-rendered'>
+<span class='kw'>let</span> <span class='ident'>cmd</span> <span class='op'>=</span> <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>redis_client</span>::<span class='ident'>RedisCommand</span>::<span class='ident'>new</span>();
+<span class='ident'>cmd</span>.<span class='ident'>set</span>(<span class='string'>&quot;key&quot;</span>, <span class='string'>&quot;value2&quot;</span>).<span class='ident'>get</span>(<span class='string'>&quot;key&quot;</span>);
+ 
+<span class='kw'>let</span> <span class='ident'>results</span> <span class='op'>=</span> <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>client</span>.<span class='ident'>exec_redis_pipeline_command</span>(<span class='ident'>cmd</span>)); <span class='comment'>// results is a Vec&lt;RedisResult&gt;</span>
+ 
+<span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>async_client</span>.<span class='ident'>exec_redis_pipeline_command_async</span>(<span class='ident'>cmd</span>, <span class='op'>|</span><span class='ident'>results</span><span class='op'>|</span> {
+    <span class='kw'>match</span> <span class='ident'>results</span> {
+        <span class='prelude-val'>Ok</span>(<span class='ident'>values</span>) <span class='op'>=&gt;</span> {
+            <span class='kw'>for</span> <span class='ident'>value</span> <span class='kw'>in</span> <span class='ident'>values</span> {
+                <span class='macro'>println</span><span class='macro'>!</span>(<span class='string'>&quot;{:?}&quot;</span>, <span class='ident'>value</span>.<span class='ident'>convert</span>::<span class='op'>&lt;</span><span class='ident'>String</span><span class='op'>&gt;</span>())
+            }
+        },
+        <span class='prelude-val'>Err</span>(<span class='ident'>err</span>) <span class='op'>=&gt;</span> <span class='macro'>println</span><span class='macro'>!</span>(<span class='string'>&quot;{:?}&quot;</span>, <span class='ident'>err</span>.<span class='ident'>to_string</span>()),
+    };
+}));</pre>
+
+<h1 id='redis-transaction' class='section-header'><a href='#redis-transaction'>Redis Transaction</a></h1>
+<p>The transcation commands are part of the built-in commands and therefore can be used like any other commmands.</p>
+</div><h2 id='reexports' class='section-header'><a href="#reexports">Reexports</a></h2>
 <table><tr><td><code>pub use errors::{<a class='enum' href='../redis_client/errors/enum.ParsingError.html' title='redis_client::errors::ParsingError'>ParsingError</a>, <a class='enum' href='../redis_client/errors/enum.RedisError.html' title='redis_client::errors::RedisError'>RedisError</a>};</code></td></tr><tr><td><code>pub use redis::{<a class='struct' href='../redis_client/redis/struct.RedisClient.html' title='redis_client::redis::RedisClient'>RedisClient</a>, <a class='struct' href='../redis_client/redis/struct.RedisClientAsync.html' title='redis_client::redis::RedisClientAsync'>RedisClientAsync</a>};</code></td></tr><tr><td><code>pub use results::<a class='enum' href='../redis_client/results/enum.RedisResult.html' title='redis_client::results::RedisResult'>RedisResult</a>;</code></td></tr><tr><td><code>pub use commands::{<a class='trait' href='../redis_client/commands/trait.CommandBuilder.html' title='redis_client::commands::CommandBuilder'>CommandBuilder</a>, <a class='trait' href='../redis_client/commands/trait.CommandSender.html' title='redis_client::commands::CommandSender'>CommandSender</a>, <a class='trait' href='../redis_client/commands/trait.CommandSenderAsync.html' title='redis_client::commands::CommandSenderAsync'>CommandSenderAsync</a>, <a class='struct' href='../redis_client/commands/struct.RedisCommand.html' title='redis_client::commands::RedisCommand'>RedisCommand</a>};</code></td></tr></table><h2 id='modules' class='section-header'><a href="#modules">Modules</a></h2>
 <table>
                     <tr class=' module-item'>

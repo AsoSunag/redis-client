@@ -161,6 +161,8 @@
 <span id="118">118</span>
 <span id="119">119</span>
 <span id="120">120</span>
+<span id="121">121</span>
+<span id="122">122</span>
 </pre><pre class='rust '>
 <span class='kw'>use</span> <span class='ident'>errors</span>::{<span class='ident'>ParsingError</span>, <span class='ident'>RedisError</span>};
 <span class='kw'>use</span> <span class='ident'>results</span>::<span class='ident'>RedisResult</span>;
@@ -168,6 +170,8 @@
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>io</span>::<span class='ident'>prelude</span>::<span class='op'>*</span>;
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>net</span>::<span class='ident'>TcpStream</span>;
 
+<span class='doccomment'>/// Reads the TcpStream buffer and parse the result according to the redis protocol specification </span>
+<span class='doccomment'>/// building either RedisResult or RedisError.</span>
 <span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>Reader</span>;
 
 <span class='kw'>impl</span> <span class='ident'>Reader</span> {

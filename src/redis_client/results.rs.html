@@ -188,6 +188,7 @@
 <span id="145">145</span>
 <span id="146">146</span>
 <span id="147">147</span>
+<span id="148">148</span>
 </pre><pre class='rust '>
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>collections</span>::<span class='ident'>HashMap</span>;
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>fmt</span>;
@@ -203,6 +204,7 @@
 }
 
 <span class='kw'>impl</span> <span class='ident'>RedisResult</span> {
+    <span class='doccomment'>/// Method to convert a RedisResult into another type</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>convert</span><span class='op'>&lt;</span><span class='ident'>T</span>: <span class='ident'>From</span><span class='op'>&lt;</span><span class='ident'>RedisResult</span><span class='op'>&gt;&gt;</span>(<span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>T</span> {
         <span class='self'>self</span>.<span class='ident'>into</span>()
     }

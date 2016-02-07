@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["Reader",""]]});
+initSidebarItems({"struct":[["Reader","Reads the TcpStream buffer and parse the result according to the redis protocol specification building either RedisResult or RedisError."]]});
