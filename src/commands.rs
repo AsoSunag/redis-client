@@ -1,5 +1,5 @@
 use errors::RedisError;
-use redis::{RedisClient, RedisClientAsync};
+use redis::{PubSubClientAsync, RedisClient, RedisClientAsync};
 use results::RedisResult;
 use std::collections::HashMap;
 
@@ -211,6 +211,20 @@ macro_rules! generate_command_traits {
                     Ok(())
                 }
             )*
+        }
+
+        pub trait PubSubCommandAsync {
+            fn subscribe<C: ToString>(&mut self, channel: C) -> Result<(), RedisError>;
+        }
+
+        impl PubSubCommandAsync for PubSubClientAsync {
+            fn subscribe<C: ToString>(&mut self, channel: C) -> Result<(), RedisError> {
+                let cmd = &mut RedisCommand::new();
+                cmd.add_arg("SUBSCRIBE").add_arg(channel).end();
+
+                try!(self.exec_redis_command_async(cmd));     
+                Ok(())
+            }
         }
     )
 }

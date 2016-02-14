@@ -2,7 +2,7 @@
 //! 
 //! # Connection
 //!
-//! Every clients are created with a host and a port:
+//! All the clients are created with a host and a port:
 //! 
 //! ```plain
 //! try!(client::new("127.0.0.1", "6379"));
@@ -187,12 +187,12 @@
 //! ```
 //! 
 //! # Redis Transaction
-//! The transcation commands are part of the built-in commands and therefore can be used like any other commmands.
+//! The transaction commands are part of the built-in commands and therefore can be used like any other commmands.
 
 pub use errors::{ParsingError, RedisError};
-pub use redis::{RedisClient, RedisClientAsync};
+pub use redis::{PubSubClientAsync, RedisClient, RedisClientAsync};
 pub use results::RedisResult;
-pub use commands::{CommandBuilder, CommandSender, CommandSenderAsync, RedisCommand};
+pub use commands::{CommandBuilder, CommandSender, CommandSenderAsync, PubSubCommandAsync, RedisCommand};
 
 pub mod commands;
 pub mod errors;

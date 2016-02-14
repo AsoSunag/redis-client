@@ -2,9 +2,9 @@ extern crate rand;
 
 use commands::RedisCommand;
 use errors::RedisError;
-use self::rand::Rng;
 use reader::Reader;
 use results::RedisResult;
+use self::rand::Rng;
 use std::collections::HashMap;
 use std::fmt;
 use std::io::BufReader;
@@ -31,6 +31,12 @@ pub struct RedisClientAsync {
     pipe_receiver: Receiver<(u32, Result<Vec<RedisResult>, RedisError>)>
 }
 
+pub struct PubSubClientAsync {
+    port: &'static str,
+    host: &'static str,
+    sender: Sender<(String, Vec<u8>)>
+}
+
 /// A RedisClient is a structure to send command to redis and receive the response.
 /// All RedisClient's methods are performed synchronously.
 /// 
@@ -50,7 +56,7 @@ impl RedisClient {
             .map(|tcp_stream| {
                     // TODO better timeout init
                     let _res_write = tcp_stream.set_write_timeout(Some(Duration::new(5, 0)));
-                    let _res_read = tcp_stream.set_read_timeout(Some(Duration::new(5, 0)));
+                    let _res_read = tcp_stream.set_read_timeout(Some(Duration::new(1, 0)));
                     RedisClient {
                         port: port,
                         host: host,
@@ -237,6 +243,83 @@ impl fmt::Debug for RedisClientAsync {
 }
 
 impl fmt::Display for RedisClientAsync {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "Redis Client Async - HOST = {} : PORT + {}", self.host, self.port)
+    }
+}
+
+
+/// A PubSubClientAsync is a structure to use redis publish/subscribe functionnality.
+/// 
+/// When creating a PubSubClientAsync it will automatically create a connection. Therefore when
+/// it is created it uses the host and the port.
+///
+/// Example:
+///
+/// ```
+/// # fn function() -> Result<(), redis_client::errors::RedisError> {
+/// let mut client = try!(redis_client::PubSubClientAsync::new("127.0.0.1", "6379"));
+/// # Ok(())}
+/// ```
+impl PubSubClientAsync {
+    pub fn new(host: &'static str, port: &'static str) -> Result<PubSubClientAsync, RedisError> {
+        let (init_tx, init_rx) = channel::<Option<RedisError>>();
+        let (sender_tx, sender_rx) = channel::<(String, Vec<u8>)>();
+
+        thread::spawn(move || {
+            let _client = RedisClient::new(host, port)
+            .map(|mut redis_client| {
+                init_tx.send(None)
+                .map(|_| {
+                    loop {
+                        match sender_rx.try_recv() {
+                            Ok(value) => {
+                                let _res = redis_client.exec_command(&value.1[..]).unwrap();
+                            },
+                            Err(_) => {
+                                if let Ok(res) = Reader::read(&mut redis_client.buffer) {
+                                    println!("{:?}", res);
+                                }
+                            }
+                        };
+                    }
+                })
+            })
+            .map_err(|error| {
+                let _res = init_tx.send(Some(error));
+            });
+        });
+
+        match init_rx.recv() {
+            Ok(None) => {
+                Ok(PubSubClientAsync {
+                    port: port,
+                    host: host,
+                    sender: sender_tx
+                })
+            },
+            Ok(Some(err)) =>  Err(err),
+            Err(err) => Err(RedisError::MpscRecv(err)),
+        }
+    }
+
+    /// Execute a redis command. The callback will be called once the command execution is over and the pump method is called.
+    /// The return value indicates if the command was successfully launched.
+    pub fn exec_redis_command_async(&mut self, redis_command: &mut RedisCommand) 
+        -> Result<(), RedisError> 
+    {
+        try!(self.sender.send(("key".to_string(), redis_command.into())));
+        Ok(())
+    }
+}
+
+impl fmt::Debug for PubSubClientAsync {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "Redis Client Async - HOST = {} : PORT + {}", self.host, self.port)
+    }
+}
+
+impl fmt::Display for PubSubClientAsync {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "Redis Client Async - HOST = {} : PORT + {}", self.host, self.port)
     }

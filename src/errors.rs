@@ -43,6 +43,7 @@ pub enum RedisError {
     Response(String),
     MpscRecv(mpsc::RecvError),
     MpscSendBytes(mpsc::SendError<(SenderType, u32, Vec<u8>)>),
+    MpscSendPubSubBytes(mpsc::SendError<(String, Vec<u8>)>),
     MpscTryRecv(mpsc::TryRecvError),
 }
 
@@ -56,6 +57,7 @@ impl Clone for RedisError {
             RedisError::Response(ref err) => RedisError::Response(err.clone()),
             RedisError::MpscRecv(ref err) => RedisError::MpscRecv(err.clone()),
             RedisError::MpscSendBytes(ref err) => RedisError::MpscSendBytes(err.clone()),
+            RedisError::MpscSendPubSubBytes(ref err) => RedisError::MpscSendPubSubBytes(err.clone()),
             RedisError::MpscTryRecv(ref err) => RedisError::MpscTryRecv(err.clone()),
         }
     }
@@ -71,6 +73,7 @@ impl fmt::Display for RedisError {
             RedisError::Response(ref err) => write!(f, "Response error: {}", err),
             RedisError::MpscRecv(ref err) => write!(f, "MpscRecv error: {}", err),
             RedisError::MpscSendBytes(ref err) => write!(f, "MpscSendBytes error: {}", err),
+            RedisError::MpscSendPubSubBytes(ref err) => write!(f, "MpscSendPubSubBytes error: {}", err),
             RedisError::MpscTryRecv(ref err) => write!(f, "MpscTryRecv error: {}", err),
         }
     }
@@ -86,6 +89,7 @@ impl error::Error for RedisError {
             RedisError::Response(ref err) => err,
             RedisError::MpscRecv(ref err) => err.description(),
             RedisError::MpscSendBytes(ref err) => err.description(),
+            RedisError::MpscSendPubSubBytes(ref err) => err.description(),
             RedisError::MpscTryRecv(ref err) => err.description(),
         }
     }
@@ -99,6 +103,7 @@ impl error::Error for RedisError {
             RedisError::Response(ref _err) => Some(self),
             RedisError::MpscRecv(ref err) => Some(err),
             RedisError::MpscSendBytes(ref err) => Some(err),
+            RedisError::MpscSendPubSubBytes(ref err) => Some(err),
             RedisError::MpscTryRecv(ref err) => Some(err),
         }
     }
@@ -143,6 +148,12 @@ impl From<mpsc::RecvError> for RedisError {
 impl From<mpsc::SendError<(SenderType, u32, Vec<u8>)>> for RedisError {
     fn from(err: mpsc::SendError<(SenderType, u32, Vec<u8>)>) -> RedisError {
         RedisError::MpscSendBytes(err)
+    }
+}
+
+impl From<mpsc::SendError<(String, Vec<u8>)>> for RedisError {
+    fn from(err: mpsc::SendError<(String, Vec<u8>)>) -> RedisError {
+        RedisError::MpscSendPubSubBytes(err)
     }
 }
 

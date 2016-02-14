@@ -19,13 +19,13 @@ impl Reader {
         let identifier = head_line.remove(0);
 
         match identifier{
-                '$' => Reader::read_bulk_string(&head_line, buffer),
-                '*' => Reader::read_array(&head_line, buffer),
-                '+' => Reader::read_string(&head_line),
-                ':' => Reader::read_integer(&head_line),
-                '-' => Reader::read_error(&head_line),
-                _ => Err(RedisError::Parse(ParsingError::BadIdentifier(identifier.to_string()))),
-            }
+            '$' => Reader::read_bulk_string(&head_line, buffer),
+            '*' => Reader::read_array(&head_line, buffer),
+            '+' => Reader::read_string(&head_line),
+            ':' => Reader::read_integer(&head_line),
+            '-' => Reader::read_error(&head_line),
+            _ => Err(RedisError::Parse(ParsingError::BadIdentifier(identifier.to_string()))),
+        }
     }
 
     /// Read the stream and expect several responses
