@@ -48,6 +48,41 @@
 //! ```
 //! To get the callback to be called once the command execution is over, the pump method needs to be called.
 //!
+//! ## PubSubClientAsync
+//!
+//! It is used for redis Pub/Sub functionnality.
+//!
+//! For example:
+//!
+//! ```no_run
+//! # use redis_client::commands::PubSubCommandAsync;
+//! # fn function() -> Result<(), redis_client::errors::RedisError> {
+//! # let mut pubsub_client = try!(redis_client::PubSubClientAsync::new("127.0.0.1", "6379"));
+//! try!(pubsub_client.subscribe("foo", |cmd_result| {
+//! 		let cmd_result_value: String  = match cmd_result {
+//! 			Ok(value) => value.into(),
+//! 			Err(err) => err.to_string(),
+//! 		};
+//! 		println!("{:?}", cmd_result_value);
+//! 	}, |received_value| {
+//! 		println!("{:?}", received_value);
+//! 	}
+//! ));
+//!
+//! try!(pubsub_client.publish("foo", "message", |cmd_result| {
+//! 		let cmd_result_value: String  = match cmd_result {
+//! 			Ok(value) => value.into(),
+//! 			Err(err) => err.to_string(),
+//! 		};
+//! 		println!("{:?}", cmd_result_value);
+//! 	}
+//! ));
+//! # Ok(())}
+//! ```
+//! The first closure in every method is the one that will be called once the command execution ends. For the subscription methods, the second closure which is the
+//! subscription callback, will be called once a value is received on the required channels. To trigger these calls, the pump method needs to be called. 
+//! (NOTE: as multiple value may be received between two calls of the pump method, a subscription callback may be triggered more than once when te pump method is called.)
+//!
 //! # Commands
 //!	 
 //! ## Built-in Commands

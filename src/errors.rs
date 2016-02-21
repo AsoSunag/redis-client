@@ -5,7 +5,7 @@ use std::io;
 use std::num;
 use std::str;
 use std::sync::mpsc;
-use types::SenderType;
+use types::{PubSubType, SenderType};
 
 #[derive(Debug, Clone)]
 pub enum ParsingError {
@@ -43,7 +43,7 @@ pub enum RedisError {
     Response(String),
     MpscRecv(mpsc::RecvError),
     MpscSendBytes(mpsc::SendError<(SenderType, u32, Vec<u8>)>),
-    MpscSendPubSubBytes(mpsc::SendError<(String, Vec<u8>)>),
+    MpscSendPubSubBytes(mpsc::SendError<(PubSubType, u32, Vec<u8>)>),
     MpscTryRecv(mpsc::TryRecvError),
 }
 
@@ -151,8 +151,8 @@ impl From<mpsc::SendError<(SenderType, u32, Vec<u8>)>> for RedisError {
     }
 }
 
-impl From<mpsc::SendError<(String, Vec<u8>)>> for RedisError {
-    fn from(err: mpsc::SendError<(String, Vec<u8>)>) -> RedisError {
+impl From<mpsc::SendError<(PubSubType, u32, Vec<u8>)>> for RedisError {
+    fn from(err: mpsc::SendError<(PubSubType, u32, Vec<u8>)>) -> RedisError {
         RedisError::MpscSendPubSubBytes(err)
     }
 }

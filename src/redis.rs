@@ -13,7 +13,8 @@ use std::net::TcpStream;
 use std::sync::mpsc::*;
 use std::time::Duration;
 use std::thread;
-use types::SenderType;
+use std::u32;
+use types::{PubSubType, SenderType};
 
 pub struct RedisClient {
     port: &'static str,
@@ -31,10 +32,19 @@ pub struct RedisClientAsync {
     pipe_receiver: Receiver<(u32, Result<Vec<RedisResult>, RedisError>)>
 }
 
+pub struct PubSubArg {
+    pub pubsub_type: PubSubType,
+    pub callback: Option<Box<Fn(RedisResult)>>
+}
+
 pub struct PubSubClientAsync {
     port: &'static str,
     host: &'static str,
-    sender: Sender<(String, Vec<u8>)>
+    cmd_sender: Sender<(PubSubType, u32, Vec<u8>)>,
+    receiver: Receiver<(u32, Result<RedisResult, RedisError>)>,
+    cmd_callbacks: HashMap<u32, Box<Fn(Result<RedisResult, RedisError>)>>,
+    channel_callbacks: HashMap<String, Box<Fn(RedisResult)>>,
+    pattern_callbacks: HashMap<String, Box<Fn(RedisResult)>>
 }
 
 /// A RedisClient is a structure to send command to redis and receive the response.
@@ -264,7 +274,8 @@ impl fmt::Display for RedisClientAsync {
 impl PubSubClientAsync {
     pub fn new(host: &'static str, port: &'static str) -> Result<PubSubClientAsync, RedisError> {
         let (init_tx, init_rx) = channel::<Option<RedisError>>();
-        let (sender_tx, sender_rx) = channel::<(String, Vec<u8>)>();
+        let (sender_tx, sender_rx) = channel::<(PubSubType, u32, Vec<u8>)>();
+        let (receiver_tx, receiver_rx) = channel::<(u32, Result<RedisResult, RedisError>)>();
 
         thread::spawn(move || {
             let _client = RedisClient::new(host, port)
@@ -274,11 +285,11 @@ impl PubSubClientAsync {
                     loop {
                         match sender_rx.try_recv() {
                             Ok(value) => {
-                                let _res = redis_client.exec_command(&value.1[..]).unwrap();
+                                let _res = receiver_tx.send((value.1, redis_client.exec_command(&value.2[..])));
                             },
                             Err(_) => {
                                 if let Ok(res) = Reader::read(&mut redis_client.buffer) {
-                                    println!("{:?}", res);
+                                    let _res = receiver_tx.send((0, Ok(res)));
                                 }
                             }
                         };
@@ -295,7 +306,11 @@ impl PubSubClientAsync {
                 Ok(PubSubClientAsync {
                     port: port,
                     host: host,
-                    sender: sender_tx
+                    cmd_sender: sender_tx,
+                    receiver: receiver_rx,
+                    cmd_callbacks: HashMap::new(),
+                    channel_callbacks: HashMap::new(),
+                    pattern_callbacks: HashMap::new()
                 })
             },
             Ok(Some(err)) =>  Err(err),
@@ -303,13 +318,60 @@ impl PubSubClientAsync {
         }
     }
 
-    /// Execute a redis command. The callback will be called once the command execution is over and the pump method is called.
+    /// Execute a redis command. The cmd_callback will be called once the command execution is over and the pump method is called.
     /// The return value indicates if the command was successfully launched.
-    pub fn exec_redis_command_async(&mut self, redis_command: &mut RedisCommand) 
-        -> Result<(), RedisError> 
+    pub fn exec_redis_command_async<F>(&mut self, redis_command: &mut RedisCommand, cmd_callback: F, pubsub_arg: PubSubArg) 
+        -> Result<(), RedisError> where F: Fn(Result<RedisResult, RedisError>), F: Send + 'static
     {
-        try!(self.sender.send(("key".to_string(), redis_command.into())));
+        let mut rng = rand::thread_rng();
+        let key: u32 = rng.gen_range(1, u32::MAX);
+
+        let pubsub_type = pubsub_arg.pubsub_type.clone();
+        try!(self.cmd_sender.send((pubsub_type, key, redis_command.into())));
+        self.cmd_callbacks.insert(key, Box::new(cmd_callback));
+
+        if let Some(callback) = pubsub_arg.callback {
+            if let PubSubType::Channel(value) = pubsub_arg.pubsub_type {
+                self.channel_callbacks.insert(value, callback);
+            }
+            else if let PubSubType::Pattern(value) = pubsub_arg.pubsub_type {
+                self.pattern_callbacks.insert(value, callback);
+            }          
+        }
+
         Ok(())
+    }
+
+    /// Pump the result and the received value and execute the callbacks with them. If no result or received value are ready this function will return.
+    pub fn pump(&mut self) -> Result<(), RedisError> {
+        loop {
+            match self.receiver.try_recv() {
+                Ok(result) => {
+                    if result.0 == 0 {
+                        if let Ok(res) = result.1 {
+                            let array = res.convert::<Vec<String>>();
+                            if !array.is_empty() {
+                                if array[0] == "message" && array.len() == 3 && self.channel_callbacks.contains_key(&array[1]) {
+                                    self.channel_callbacks[&array[1]](RedisResult::String(array[2].clone()));
+                                } else if array[0] == "pmessage" && array.len() == 4 && self.pattern_callbacks.contains_key(&array[1]) {
+                                    self.pattern_callbacks[&array[1]](RedisResult::String(array[3].clone()));
+                                }
+                            }
+                        } 
+                    } else {
+                        self.cmd_callbacks.remove(&result.0) 
+                            .map(|callback| {
+                                if result.1.is_ok() {
+
+                                    callback(result.1.clone());
+                                }
+                            });
+                    }
+                },
+                Err(TryRecvError::Empty) => return Ok(()),
+                Err(err) => return Err(RedisError::MpscTryRecv(err))
+            };
+        }
     }
 }
 

@@ -1,7 +1,8 @@
 use errors::RedisError;
-use redis::{PubSubClientAsync, RedisClient, RedisClientAsync};
+use redis::{PubSubArg, PubSubClientAsync, RedisClient, RedisClientAsync};
 use results::RedisResult;
 use std::collections::HashMap;
+use types::PubSubType;
 
 /// A RedisCommand purpose is to build redis commands.
 /// It can contains one or more commands for pipelining
@@ -214,15 +215,55 @@ macro_rules! generate_command_traits {
         }
 
         pub trait PubSubCommandAsync {
-            fn subscribe<C: ToString>(&mut self, channel: C) -> Result<(), RedisError>;
+            fn subscribe<C: ToString, G: Fn(Result<RedisResult, RedisError>), S: Fn(RedisResult)>(&mut self, channel: C, cmd_callback: G, callback: S) 
+                -> Result<(), RedisError> where G: Send + 'static, S: Send + 'static;
+
+            fn psubscribe<C: ToString, G: Fn(Result<RedisResult, RedisError>), S: Fn(RedisResult)>(&mut self, channel: C, cmd_callback: G, callback: S) 
+                -> Result<(), RedisError> where G: Send + 'static, S: Send + 'static;
+
+            fn publish<C: ToString, M: ToString, G: Fn(Result<RedisResult, RedisError>)>(&mut self, channel: C, message: M, cmd_callback: G)
+                -> Result<(), RedisError> where G: Send + 'static;
         }
 
         impl PubSubCommandAsync for PubSubClientAsync {
-            fn subscribe<C: ToString>(&mut self, channel: C) -> Result<(), RedisError> {
+            fn subscribe<C: ToString, G: Fn(Result<RedisResult, RedisError>), S: Fn(RedisResult)>(&mut self, channel: C, cmd_callback: G, callback: S) 
+                -> Result<(), RedisError> where G: Send + 'static, S: Send + 'static
+            {
+                let channel_str: String = channel.to_string();
                 let cmd = &mut RedisCommand::new();
                 cmd.add_arg("SUBSCRIBE").add_arg(channel).end();
 
-                try!(self.exec_redis_command_async(cmd));     
+                try!(self.exec_redis_command_async(cmd, cmd_callback, PubSubArg{
+                    pubsub_type: PubSubType::Channel(channel_str), 
+                    callback: Some(Box::new(callback))
+                }));     
+                Ok(())
+            }
+
+            fn psubscribe<C: ToString, G: Fn(Result<RedisResult, RedisError>), S: Fn(RedisResult)>(&mut self, channel: C, cmd_callback: G, callback: S) 
+                -> Result<(), RedisError> where G: Send + 'static, S: Send + 'static
+            {
+                let channel_str: String = channel.to_string();
+                let cmd = &mut RedisCommand::new();
+                cmd.add_arg("PSUBSCRIBE").add_arg(channel).end();
+
+                try!(self.exec_redis_command_async(cmd, cmd_callback, PubSubArg{
+                    pubsub_type: PubSubType::Pattern(channel_str), 
+                    callback: Some(Box::new(callback))
+                }));     
+                Ok(())
+            }
+
+            fn publish<C: ToString, M: ToString, G: Fn(Result<RedisResult, RedisError>)>(&mut self, channel: C, message: M, cmd_callback: G) 
+                -> Result<(), RedisError> where G: Send + 'static
+            {
+                let cmd = &mut RedisCommand::new();
+                cmd.add_arg("PUBLISH").add_arg(channel).add_arg(message).end();
+
+                try!(self.exec_redis_command_async(cmd, cmd_callback, PubSubArg{
+                    pubsub_type: PubSubType::Simple,
+                    callback: None
+                }));     
                 Ok(())
             }
         }
