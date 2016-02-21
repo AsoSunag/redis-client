@@ -46,11 +46,11 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-0' class='srclink' href='../src/redis_client/lib.rs.html#1-202' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-0' class='srclink' href='../src/redis_client/lib.rs.html#1-237' title='goto source code'>[src]</a></span></h1>
 <div class='docblock'><p>A redis client implemented in Rust. It&#39;s create is called &quot;redis-client&quot;.</p>
 
 <h1 id='connection' class='section-header'><a href='#connection'>Connection</a></h1>
-<p>Every clients are created with a host and a port:</p>
+<p>All the clients are created with a host and a port:</p>
 
 <pre><code class="language-plain">try!(client::new(&quot;127.0.0.1&quot;, &quot;6379&quot;));
 </code></pre>
@@ -81,6 +81,35 @@
 }));</pre>
 
 <p>To get the callback to be called once the command execution is over, the pump method needs to be called.</p>
+
+<h2 id='pubsubclientasync' class='section-header'><a href='#pubsubclientasync'>PubSubClientAsync</a></h2>
+<p>It is used for redis Pub/Sub functionnality.</p>
+
+<p>For example:</p>
+<pre class='rust rust-example-rendered'>
+<span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>pubsub_client</span>.<span class='ident'>subscribe</span>(<span class='string'>&quot;foo&quot;</span>, <span class='op'>|</span><span class='ident'>cmd_result</span><span class='op'>|</span> {
+        <span class='kw'>let</span> <span class='ident'>cmd_result_value</span>: <span class='ident'>String</span>  <span class='op'>=</span> <span class='kw'>match</span> <span class='ident'>cmd_result</span> {
+            <span class='prelude-val'>Ok</span>(<span class='ident'>value</span>) <span class='op'>=&gt;</span> <span class='ident'>value</span>.<span class='ident'>into</span>(),
+            <span class='prelude-val'>Err</span>(<span class='ident'>err</span>) <span class='op'>=&gt;</span> <span class='ident'>err</span>.<span class='ident'>to_string</span>(),
+        };
+        <span class='macro'>println</span><span class='macro'>!</span>(<span class='string'>&quot;{:?}&quot;</span>, <span class='ident'>cmd_result_value</span>);
+    }, <span class='op'>|</span><span class='ident'>received_value</span><span class='op'>|</span> {
+        <span class='macro'>println</span><span class='macro'>!</span>(<span class='string'>&quot;{:?}&quot;</span>, <span class='ident'>received_value</span>);
+    }
+));
+
+<span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>pubsub_client</span>.<span class='ident'>publish</span>(<span class='string'>&quot;foo&quot;</span>, <span class='string'>&quot;message&quot;</span>, <span class='op'>|</span><span class='ident'>cmd_result</span><span class='op'>|</span> {
+        <span class='kw'>let</span> <span class='ident'>cmd_result_value</span>: <span class='ident'>String</span>  <span class='op'>=</span> <span class='kw'>match</span> <span class='ident'>cmd_result</span> {
+            <span class='prelude-val'>Ok</span>(<span class='ident'>value</span>) <span class='op'>=&gt;</span> <span class='ident'>value</span>.<span class='ident'>into</span>(),
+            <span class='prelude-val'>Err</span>(<span class='ident'>err</span>) <span class='op'>=&gt;</span> <span class='ident'>err</span>.<span class='ident'>to_string</span>(),
+        };
+        <span class='macro'>println</span><span class='macro'>!</span>(<span class='string'>&quot;{:?}&quot;</span>, <span class='ident'>cmd_result_value</span>);
+    }
+));</pre>
+
+<p>The first closure in every method is the one that will be called once the command execution ends. For the subscription methods, the second closure which is the
+subscription callback, will be called once a value is received on the required channels. To trigger these calls, the pump method needs to be called. 
+(NOTE: as multiple value may be received between two calls of the pump method, a subscription callback may be triggered more than once when te pump method is called.)</p>
 
 <h1 id='commands' class='section-header'><a href='#commands'>Commands</a></h1>
 <h2 id='built-in-commands' class='section-header'><a href='#built-in-commands'>Built-in Commands</a></h2>
@@ -176,9 +205,9 @@ The only difference with the execution of a single command is that the Result co
 }));</pre>
 
 <h1 id='redis-transaction' class='section-header'><a href='#redis-transaction'>Redis Transaction</a></h1>
-<p>The transcation commands are part of the built-in commands and therefore can be used like any other commmands.</p>
+<p>The transaction commands are part of the built-in commands and therefore can be used like any other commmands.</p>
 </div><h2 id='reexports' class='section-header'><a href="#reexports">Reexports</a></h2>
-<table><tr><td><code>pub use errors::{<a class='enum' href='../redis_client/errors/enum.ParsingError.html' title='redis_client::errors::ParsingError'>ParsingError</a>, <a class='enum' href='../redis_client/errors/enum.RedisError.html' title='redis_client::errors::RedisError'>RedisError</a>};</code></td></tr><tr><td><code>pub use redis::{<a class='struct' href='../redis_client/redis/struct.RedisClient.html' title='redis_client::redis::RedisClient'>RedisClient</a>, <a class='struct' href='../redis_client/redis/struct.RedisClientAsync.html' title='redis_client::redis::RedisClientAsync'>RedisClientAsync</a>};</code></td></tr><tr><td><code>pub use results::<a class='enum' href='../redis_client/results/enum.RedisResult.html' title='redis_client::results::RedisResult'>RedisResult</a>;</code></td></tr><tr><td><code>pub use commands::{<a class='trait' href='../redis_client/commands/trait.CommandBuilder.html' title='redis_client::commands::CommandBuilder'>CommandBuilder</a>, <a class='trait' href='../redis_client/commands/trait.CommandSender.html' title='redis_client::commands::CommandSender'>CommandSender</a>, <a class='trait' href='../redis_client/commands/trait.CommandSenderAsync.html' title='redis_client::commands::CommandSenderAsync'>CommandSenderAsync</a>, <a class='struct' href='../redis_client/commands/struct.RedisCommand.html' title='redis_client::commands::RedisCommand'>RedisCommand</a>};</code></td></tr></table><h2 id='modules' class='section-header'><a href="#modules">Modules</a></h2>
+<table><tr><td><code>pub use errors::{<a class='enum' href='../redis_client/errors/enum.ParsingError.html' title='redis_client::errors::ParsingError'>ParsingError</a>, <a class='enum' href='../redis_client/errors/enum.RedisError.html' title='redis_client::errors::RedisError'>RedisError</a>};</code></td></tr><tr><td><code>pub use redis::{<a class='struct' href='../redis_client/redis/struct.PubSubClientAsync.html' title='redis_client::redis::PubSubClientAsync'>PubSubClientAsync</a>, <a class='struct' href='../redis_client/redis/struct.RedisClient.html' title='redis_client::redis::RedisClient'>RedisClient</a>, <a class='struct' href='../redis_client/redis/struct.RedisClientAsync.html' title='redis_client::redis::RedisClientAsync'>RedisClientAsync</a>};</code></td></tr><tr><td><code>pub use results::<a class='enum' href='../redis_client/results/enum.RedisResult.html' title='redis_client::results::RedisResult'>RedisResult</a>;</code></td></tr><tr><td><code>pub use commands::{<a class='trait' href='../redis_client/commands/trait.CommandBuilder.html' title='redis_client::commands::CommandBuilder'>CommandBuilder</a>, <a class='trait' href='../redis_client/commands/trait.CommandSender.html' title='redis_client::commands::CommandSender'>CommandSender</a>, <a class='trait' href='../redis_client/commands/trait.CommandSenderAsync.html' title='redis_client::commands::CommandSenderAsync'>CommandSenderAsync</a>, <a class='trait' href='../redis_client/commands/trait.PubSubCommandAsync.html' title='redis_client::commands::PubSubCommandAsync'>PubSubCommandAsync</a>, <a class='struct' href='../redis_client/commands/struct.RedisCommand.html' title='redis_client::commands::RedisCommand'>RedisCommand</a>};</code></td></tr></table><h2 id='modules' class='section-header'><a href="#modules">Modules</a></h2>
 <table>
                     <tr class=' module-item'>
                         <td><a class='mod' href='commands/index.html'

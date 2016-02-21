@@ -4,10 +4,10 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="rustdoc">
-    <meta name="description" content="API documentation for the Rust `redis` mod in crate `redis_client`.">
-    <meta name="keywords" content="rust, rustlang, rust-lang, redis">
+    <meta name="description" content="API documentation for the Rust `PubSubArg` struct in crate `redis_client`.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, PubSubArg">
 
-    <title>redis_client::redis - Rust</title>
+    <title>redis_client::redis::PubSubArg - Rust</title>
 
     <link rel="stylesheet" type="text/css" href="../../rustdoc.css">
     <link rel="stylesheet" type="text/css" href="../../main.css">
@@ -27,7 +27,7 @@
 
     <nav class="sidebar">
         
-        <p class='location'><a href='../index.html'>redis_client</a></p><script>window.sidebarCurrent = {name: 'redis', ty: 'mod', relpath: '../'};</script><script defer src="../sidebar-items.js"></script>
+        <p class='location'><a href='../index.html'>redis_client</a>::<wbr><a href='index.html'>redis</a></p><script>window.sidebarCurrent = {name: 'PubSubArg', ty: 'struct', relpath: ''};</script><script defer src="sidebar-items.js"></script>
     </nav>
 
     <nav class="sub">
@@ -41,46 +41,19 @@
         </form>
     </nav>
 
-    <section id='main' class="content mod">
-<h1 class='fqn'><span class='in-band'>Module <a href='../index.html'>redis_client</a>::<wbr><a class='mod' href=''>redis</a></span><span class='out-of-band'><span id='render-detail'>
+    <section id='main' class="content struct">
+<h1 class='fqn'><span class='in-band'>Struct <a href='../index.html'>redis_client</a>::<wbr><a href='index.html'>redis</a>::<wbr><a class='struct' href=''>PubSubArg</a></span><span class='out-of-band'><span id='render-detail'>
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-5054' class='srclink' href='../../src/redis_client/redis.rs.html#1-388' title='goto source code'>[src]</a></span></h1>
-<h2 id='structs' class='section-header'><a href="#structs">Structs</a></h2>
-<table>
-                    <tr class=' module-item'>
-                        <td><a class='struct' href='struct.PubSubArg.html'
-                               title='redis_client::redis::PubSubArg'>PubSubArg</a></td>
-                        <td class='docblock short'>
-                             
-                        </td>
-                    </tr>
-                
-                    <tr class=' module-item'>
-                        <td><a class='struct' href='struct.PubSubClientAsync.html'
-                               title='redis_client::redis::PubSubClientAsync'>PubSubClientAsync</a></td>
-                        <td class='docblock short'>
-                             
-                        </td>
-                    </tr>
-                
-                    <tr class=' module-item'>
-                        <td><a class='struct' href='struct.RedisClient.html'
-                               title='redis_client::redis::RedisClient'>RedisClient</a></td>
-                        <td class='docblock short'>
-                             
-                        </td>
-                    </tr>
-                
-                    <tr class=' module-item'>
-                        <td><a class='struct' href='struct.RedisClientAsync.html'
-                               title='redis_client::redis::RedisClientAsync'>RedisClientAsync</a></td>
-                        <td class='docblock short'>
-                             
-                        </td>
-                    </tr>
-                </table></section>
+        </span><a id='src-5084' class='srclink' href='../../src/redis_client/redis.rs.html#35-38' title='goto source code'>[src]</a></span></h1>
+<pre class='rust struct'>pub struct PubSubArg {
+    pub pubsub_type: <a class='enum' href='../../redis_client/types/enum.PubSubType.html' title='redis_client::types::PubSubType'>PubSubType</a>,
+    pub callback: <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;<a class='struct' href='https://doc.rust-lang.org/nightly/alloc/boxed/struct.Box.html' title='alloc::boxed::Box'>Box</a>&lt;<a class='trait' href='https://doc.rust-lang.org/nightly/core/ops/trait.Fn.html' title='core::ops::Fn'>Fn</a>(<a class='enum' href='../../redis_client/results/enum.RedisResult.html' title='redis_client::results::RedisResult'>RedisResult</a>)&gt;&gt;,
+}</pre><h2 class='fields'>Fields</h2>
+<table><tr class='stab '>
+                                  <td id='structfield.pubsub_type'><code>pubsub_type</code></td><td></td></tr><tr class='stab '>
+                                  <td id='structfield.callback'><code>callback</code></td><td></td></tr></table></section>
     <section id='search' class="content hidden"></section>
 
     <section class="footer"></section>

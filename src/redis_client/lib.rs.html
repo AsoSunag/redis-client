@@ -243,12 +243,47 @@
 <span id="200">200</span>
 <span id="201">201</span>
 <span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
+<span id="214">214</span>
+<span id="215">215</span>
+<span id="216">216</span>
+<span id="217">217</span>
+<span id="218">218</span>
+<span id="219">219</span>
+<span id="220">220</span>
+<span id="221">221</span>
+<span id="222">222</span>
+<span id="223">223</span>
+<span id="224">224</span>
+<span id="225">225</span>
+<span id="226">226</span>
+<span id="227">227</span>
+<span id="228">228</span>
+<span id="229">229</span>
+<span id="230">230</span>
+<span id="231">231</span>
+<span id="232">232</span>
+<span id="233">233</span>
+<span id="234">234</span>
+<span id="235">235</span>
+<span id="236">236</span>
+<span id="237">237</span>
 </pre><pre class='rust '>
 <span class='doccomment'>//! A redis client implemented in Rust. It&#39;s create is called &quot;redis-client&quot;.</span>
 <span class='doccomment'>//! </span>
 <span class='doccomment'>//! # Connection</span>
 <span class='doccomment'>//!</span>
-<span class='doccomment'>//! Every clients are created with a host and a port:</span>
+<span class='doccomment'>//! All the clients are created with a host and a port:</span>
 <span class='doccomment'>//! </span>
 <span class='doccomment'>//! ```plain</span>
 <span class='doccomment'>//! try!(client::new(&quot;127.0.0.1&quot;, &quot;6379&quot;));</span>
@@ -293,6 +328,41 @@
 <span class='doccomment'>//! # Ok(())}</span>
 <span class='doccomment'>//! ```</span>
 <span class='doccomment'>//! To get the callback to be called once the command execution is over, the pump method needs to be called.</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//! ## PubSubClientAsync</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//! It is used for redis Pub/Sub functionnality.</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//! For example:</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//! ```no_run</span>
+<span class='doccomment'>//! # use redis_client::commands::PubSubCommandAsync;</span>
+<span class='doccomment'>//! # fn function() -&gt; Result&lt;(), redis_client::errors::RedisError&gt; {</span>
+<span class='doccomment'>//! # let mut pubsub_client = try!(redis_client::PubSubClientAsync::new(&quot;127.0.0.1&quot;, &quot;6379&quot;));</span>
+<span class='doccomment'>//! try!(pubsub_client.subscribe(&quot;foo&quot;, |cmd_result| {</span>
+<span class='doccomment'>//! 		let cmd_result_value: String  = match cmd_result {</span>
+<span class='doccomment'>//! 			Ok(value) =&gt; value.into(),</span>
+<span class='doccomment'>//! 			Err(err) =&gt; err.to_string(),</span>
+<span class='doccomment'>//! 		};</span>
+<span class='doccomment'>//! 		println!(&quot;{:?}&quot;, cmd_result_value);</span>
+<span class='doccomment'>//! 	}, |received_value| {</span>
+<span class='doccomment'>//! 		println!(&quot;{:?}&quot;, received_value);</span>
+<span class='doccomment'>//! 	}</span>
+<span class='doccomment'>//! ));</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//! try!(pubsub_client.publish(&quot;foo&quot;, &quot;message&quot;, |cmd_result| {</span>
+<span class='doccomment'>//! 		let cmd_result_value: String  = match cmd_result {</span>
+<span class='doccomment'>//! 			Ok(value) =&gt; value.into(),</span>
+<span class='doccomment'>//! 			Err(err) =&gt; err.to_string(),</span>
+<span class='doccomment'>//! 		};</span>
+<span class='doccomment'>//! 		println!(&quot;{:?}&quot;, cmd_result_value);</span>
+<span class='doccomment'>//! 	}</span>
+<span class='doccomment'>//! ));</span>
+<span class='doccomment'>//! # Ok(())}</span>
+<span class='doccomment'>//! ```</span>
+<span class='doccomment'>//! The first closure in every method is the one that will be called once the command execution ends. For the subscription methods, the second closure which is the</span>
+<span class='doccomment'>//! subscription callback, will be called once a value is received on the required channels. To trigger these calls, the pump method needs to be called. </span>
+<span class='doccomment'>//! (NOTE: as multiple value may be received between two calls of the pump method, a subscription callback may be triggered more than once when te pump method is called.)</span>
 <span class='doccomment'>//!</span>
 <span class='doccomment'>//! # Commands</span>
 <span class='doccomment'>//!	 </span>
@@ -433,12 +503,12 @@
 <span class='doccomment'>//! ```</span>
 <span class='doccomment'>//! </span>
 <span class='doccomment'>//! # Redis Transaction</span>
-<span class='doccomment'>//! The transcation commands are part of the built-in commands and therefore can be used like any other commmands.</span>
+<span class='doccomment'>//! The transaction commands are part of the built-in commands and therefore can be used like any other commmands.</span>
 
 <span class='kw'>pub</span> <span class='kw'>use</span> <span class='ident'>errors</span>::{<span class='ident'>ParsingError</span>, <span class='ident'>RedisError</span>};
-<span class='kw'>pub</span> <span class='kw'>use</span> <span class='ident'>redis</span>::{<span class='ident'>RedisClient</span>, <span class='ident'>RedisClientAsync</span>};
+<span class='kw'>pub</span> <span class='kw'>use</span> <span class='ident'>redis</span>::{<span class='ident'>PubSubClientAsync</span>, <span class='ident'>RedisClient</span>, <span class='ident'>RedisClientAsync</span>};
 <span class='kw'>pub</span> <span class='kw'>use</span> <span class='ident'>results</span>::<span class='ident'>RedisResult</span>;
-<span class='kw'>pub</span> <span class='kw'>use</span> <span class='ident'>commands</span>::{<span class='ident'>CommandBuilder</span>, <span class='ident'>CommandSender</span>, <span class='ident'>CommandSenderAsync</span>, <span class='ident'>RedisCommand</span>};
+<span class='kw'>pub</span> <span class='kw'>use</span> <span class='ident'>commands</span>::{<span class='ident'>CommandBuilder</span>, <span class='ident'>CommandSender</span>, <span class='ident'>CommandSenderAsync</span>, <span class='ident'>PubSubCommandAsync</span>, <span class='ident'>RedisCommand</span>};
 
 <span class='kw'>pub</span> <span class='kw'>mod</span> <span class='ident'>commands</span>;
 <span class='kw'>pub</span> <span class='kw'>mod</span> <span class='ident'>errors</span>;

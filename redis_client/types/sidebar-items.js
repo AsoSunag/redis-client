@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["SenderType",""]]});
+initSidebarItems({"enum":[["PubSubType",""],["SenderType",""]]});
